@@ -102,3 +102,21 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Ignore requirements
+aiodns/
+aiohttp/
+async_timeout/
+attr/
+cchardet/
+certifi/
+chardet/
+idna/
+idna_ssl.py
+multidict/
+pycares/
+requests/
+typing_extensions.py
+typing.py
+urllib3/
+yarl/
