@@ -184,7 +184,7 @@ Akinator.answer(ans)
 Akinator.back()
   Goes back to the previous question. Returns a string containing that question
 
-  If you're on the first question and you try to go back again, the CantGoBackAnyFurther exception will be raised
+  If you're on the first question and you try to go back, the ``CantGoBackAnyFurther`` exception will be raised
 
 Akinator.win()
   Get Aki's first guess for who the character you're thinking of is based on your answers to the questions so far.
@@ -233,12 +233,14 @@ Akinator.question
   The current question that Akinator is asking the user. Examples of questions asked by Aki include: ``Is your character's gender female?``, ``Is your character more than 40 years old?``, ``Does your character create music?``, ``Is your character real?``, ``Is your character from a TV series?``, etc.
 
 Akinator.progression
-  A floating point number that represents a percentage showing how close Aki thinks he is to guessing your character. I recommend keeping track of this value and calling ``Akinator.win()`` when it's above 85. In most cases, this is about when Aki will have it narrowed down to one choice, which will hopefully be the correct one.
+  A floating point number that represents a percentage showing how close Aki thinks he is to guessing your character. I recommend keeping track of this value and calling ``Akinator.win()`` when it's above 85 or 90. In most cases, this is about when Aki will have it narrowed down to one choice, which will hopefully be the correct one.
 
 Akinator.step
   An integer that tells you what question Akinator is on. This will be 0 on the first question, 1 on the second question, 2 on the third, 3 on the fourth, etc.
 
 The first 3 variables, ``server``, ``session``, and ``signature`` will remain unchanged, but the next 3, ``question``, ``progression``, and ``step`` will change as you go on.
+
+**Note**: There are 3 more variables that will be defined when the function ``Akinator.win()`` is called for the first time. These variables are documented above, underneath that function in the **Functions** section
 
 Exceptions
 ==========
