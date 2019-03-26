@@ -3,6 +3,7 @@
 import akinator
 aki = akinator.Akinator()
 
+
 def main():
     q = aki.start_game()
     while aki.progression <= 85:
