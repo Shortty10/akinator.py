@@ -8,7 +8,6 @@ EXTRAS = {
     "async": ["aiohttp"],
     "fast_async": ["aiohttp", "cchardet", "aiodns"]
 }
-LICENSE = open(os.path.join(DIRECTORY, "LICENSE.txt")).read()
 VERSION = open(os.path.join(DIRECTORY, "akinator", "VERSION.txt")).read()
 READ_ME = open(os.path.join(DIRECTORY, "README.rst")).read()
 
@@ -28,7 +27,7 @@ setup(
         "Tracker": "https://github.com/NinjaSnail1080/akinator.py/issues",
         "Say Thanks!": "https://saythanks.io/to/NinjaSnail1080"
     },
-    license=LICENSE,
+    license="MIT",
     description="An API wrapper for the online game, Akinator, written in Python",
     long_description=READ_ME,
     long_description_content_type="text/x-rst",
