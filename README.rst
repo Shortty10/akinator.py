@@ -247,22 +247,22 @@ Exceptions
 
 Exceptions that are thrown by the library
 
-akinator.InvalidAnswerError
+InvalidAnswerError
   Raised when the user inputs an invalid answer into ``Akinator.answer(ans)``
 
-akinator.InvalidLanguageError
+InvalidLanguageError
   Raised when the user inputs an invalid language into ``Akinator.start_game(language=None)``
 
-akinator.AkiConnectionFailure
+AkiConnectionFailure
   Raised if the Akinator API fails to connect for some reason. Base class for ``AkiTimedOut``, ``AkiNoQuestions``, and ``AkiFailedToConnect``
 
-akinator.AkiTimedOut
+AkiTimedOut
   Raised if the Akinator session times out. Derived from ``AkiConnectionFailure``
 
-akinator.AkiNoQuestions
+AkiNoQuestions
   Raised if the Akinator API runs out of questions to ask. This will happen once ``Akinator.step`` reaches 80. Derived from ``AkiConnectionFailure``
 
-akinator.AkiFailedToConnect
+AkiFailedToConnect
   Raised when the Akinator API failed to connect some reason other than timing out or running out of questions. Derived from ``AkiConnectionFailure``
 
 akinator.CantGoBackAnyFurther:
