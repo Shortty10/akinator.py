@@ -265,7 +265,7 @@ AkiNoQuestions
 AkiFailedToConnect
   Raised when the Akinator API failed to connect some reason other than timing out or running out of questions. Derived from ``AkiConnectionFailure``
 
-akinator.CantGoBackAnyFurther:
+CantGoBackAnyFurther:
   Raised when the user is on the first question and tries to go back further by calling ``Akinator.back()``
 
 """""""""""""""""
