@@ -144,7 +144,7 @@ Functions
 Akinator.start_game(language=None)
   Start an Akinator game. Run this function first before the others. Returns a string containing the first question
 
-  The ``language`` parameter can be left as None for English, the default language, or it can be set to one of these:
+  The ``language`` parameter can be left as None for English, the default language, or it can be set to one of these (case-insensitive):
 
   - ``en``: English
   - ``en2``: Second English server. Use if the main one is down
@@ -171,7 +171,7 @@ Akinator.start_game(language=None)
 Akinator.answer(ans)
   Answer the current question, which you can find with ``Akinator.question``. Returns a string containing the next question
 
-  The ``ans`` parameter must be one of these:
+  The ``ans`` parameter must be one of these (case-insensitive):
 
   - ``yes`` or ``y`` or ``0`` for YES
   - ``no`` or ``n`` or ``1`` for NO
