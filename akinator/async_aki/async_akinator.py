@@ -22,18 +22,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from ..exceptions import InvalidAnswerError, InvalidLanguageError, AkiConnectionFailure, AkiTimedOut, AkiNoQuestions, AkiFailedToConnect, CantGoBackAnyFurther
-from ..utils import ans_to_id, get_region
+from ..utils import ans_to_id, get_region, raise_connection_error
+from ..exceptions import CantGoBackAnyFurther
 import aiohttp
 import asyncio
+import re
 
 #* URLs for the API requests
-NEW_SESSION_URL = (
-    "https://{}/ws/new_session?callback=&partner=&player=website-desktop&uid_ext_session="
-    "&frontaddr=NDYuMTA1LjExMC40NQ==&constraint=ETAT%3C%3E%27AV%27")
-ANSWER_URL = ("https://{}/ws/answer?callback=&session={}&signature={}&step={}&answer={}")
-BACK_URL = ("https://{}/ws/answer?callback=&session={}&signature={}&step={}&answer=-1")
-WIN_URL = ("https://{}/ws/list?callback=&session={}&signature={}&step={}")
+NEW_SESSION_URL = "https://{}/ws/new_session?partner=1&player=website-desktop&uid_ext_session={}&frontaddr={}&constraint=ETAT%%3C%%3E%%27AV%%27&constraint=ETAT<>'AV'"
+ANSWER_URL = "https://{}/ws/answer?callback=&session={}&signature={}&step={}&answer={}"
+BACK_URL = "https://{}/ws/answer?callback=&session={}&signature={}&step={}&answer=-1"
+WIN_URL = "https://{}/ws/list?callback=&session={}&signature={}&step={}"
 
 
 class Akinator():
@@ -45,6 +44,8 @@ class Akinator():
         self.server = None
         self.session = None
         self.signature = None
+        self.uid = None
+        self.frontaddr = None
 
         self.question = None
         self.progression = None
@@ -61,6 +62,15 @@ class Akinator():
             self.question = resp["parameters"]["question"]
             self.progression = float(resp["parameters"]["progression"])
             self.step = int(resp["parameters"]["step"])
+
+    async def _get_session_info(self):
+        session_regex = re.compile("var uid_ext_session = '(.*)'\\;\\n.*var frontaddr = '(.*)'\\;")
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://en.akinator.com/game") as w:
+                match = session_regex.search(await w.text())
+
+        self.uid, self.frontaddr = match.groups()[0], match.groups()[1]
 
     async def start_game(self, language=None):
         """(coroutine)
@@ -87,16 +97,17 @@ class Akinator():
         You can also put the name of the language spelled out, like "spanish", "korean", etc.
         """
         self.server = get_region(language)
+        await self._get_session_info()
 
         async with aiohttp.ClientSession() as session:
-            async with session.get(NEW_SESSION_URL.format(self.server)) as w:
+            async with session.get(NEW_SESSION_URL.format(self.server, self.uid, self.frontaddr)) as w:
                 resp = await w.json()
 
         if resp["completion"] == "OK":
             self._update(resp, True)
             return self.question
         else:
-            raise AkiFailedToConnect("Failed to connect: {}".format(resp["completion"]))
+            return raise_connection_error(resp["completion"])
 
     async def answer(self, ans):
         """(coroutine)
@@ -132,12 +143,8 @@ class Akinator():
         if resp["completion"] == "OK":
             self._update(resp)
             return self.question
-        elif resp["completion"] == "KO - TIMEOUT":
-            raise AkiTimedOut("Connection timed out")
-        elif resp["completion"] == "WARN - NO QUESTION":
-            raise AkiNoQuestions("\"Akinator.step\" reached 80. No more questions")
         else:
-            raise AkiFailedToConnect("Failed to connect: {}".format(resp["completion"]))
+            return raise_connection_error(resp["completion"])
 
     async def back(self):
         """(coroutine)
@@ -146,8 +153,7 @@ class Akinator():
         If you're on the first question and you try to go back again, the CantGoBackAnyFurther exception will be raised
         """
         if self.step == 0:
-            raise CantGoBackAnyFurther(
-                "You were on the first question and couldn't go back any further")
+            raise CantGoBackAnyFurther("You were on the first question and couldn't go back any further")
 
         async with aiohttp.ClientSession() as session:
             async with session.get(BACK_URL.format(self.server, self.session, self.signature, self.step)) as w:
@@ -156,12 +162,8 @@ class Akinator():
         if resp["completion"] == "OK":
             self._update(resp)
             return self.question
-        elif resp["completion"] == "KO - TIMEOUT":
-            raise AkiTimedOut("Connection timed out")
-        elif resp["completion"] == "WARN - NO QUESTION":
-            raise AkiNoQuestions("\"Akinator.step\" reached 80. No more questions")
         else:
-            raise AkiFailedToConnect("Failed to connect: {}".format(resp["completion"]))
+            return raise_connection_error(resp["completion"])
 
     async def win(self):
         """(coroutine)
@@ -186,9 +188,5 @@ class Akinator():
             self.description = guess["description"]
             self.picture = guess["absolute_picture_path"]
             return guess
-        elif resp["completion"] == "KO - TIMEOUT":
-            raise AkiTimedOut("Connection timed out")
-        elif resp["completion"] == "WARN - NO QUESTION":
-            raise AkiNoQuestions("\"Akinator.step\" reached 80. No more questions")
         else:
-            raise AkiFailedToConnect("Failed to connect: {}".format(resp["completion"]))
+            return raise_connection_error(resp["completion"])
