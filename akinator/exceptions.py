@@ -34,7 +34,7 @@ class InvalidLanguageError(Exception):
 
 
 class AkiConnectionFailure(Exception):
-    """Raised if the Akinator API fails to connect for some reason. Base class for AkiTimedOut, AkiNoQuestions, and AkiFailedToConnect"""
+    """Raised if the Akinator API fails to connect for some reason. Base class for AkiTimedOut, AkiNoQuestions, AkiServerDown, and AkiTechnicalError"""
 
 
 class AkiTimedOut(AkiConnectionFailure):
@@ -47,9 +47,13 @@ class AkiNoQuestions(AkiConnectionFailure):
     pass
 
 
-class AkiFailedToConnect(AkiConnectionFailure):
-    """Raised when the Akinator API failed to connect for some reason other than timing out or running out of questions. Derived from AkiConnectionFailure"""
+class AkiServerDown(AkiConnectionFailure):
+    """Raised if Akinator's servers are down for the region you're running on. If this happens, try again later or use a different language. Derived from AkiConnectionFailure"""
     pass
+
+
+class AkiTechnicalError(AkiConnectionFailure):
+    """Raised if Aki's servers had a technical error. If this happens, try again later or use a different language. Derived from AkiConnectionFailure"""
 
 
 class CantGoBackAnyFurther(Exception):
