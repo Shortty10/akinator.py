@@ -1,14 +1,13 @@
-
 ===========
 akinator.py
 ===========
 
 **An API wrapper for the online game, Akinator, written in Python**
 
-.. image:: https://img.shields.io/badge/pypi-v1.0.3-blue.svg
+.. image:: https://img.shields.io/badge/pypi-v1.1.0-blue.svg
     :target: https://pypi.python.org/pypi/akinator.py/
 
-.. image:: https://img.shields.io/badge/python-3.5%20%7C%203.6-yellow.svg
+.. image:: https://img.shields.io/badge/python-%E2%89%A53.5.3-yellow.svg
     :target: https://www.python.org/downloads/
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -39,6 +38,8 @@ To get async support plus faster performance (via the ``aiodns`` and ``cchardet`
 
 Requirements
 ============
+
+- Python ≥3.5.3
 
 - ``requests``
 
@@ -199,19 +200,19 @@ Akinator.win()
 
   .. code-block:: javascript
 
-    {'absolute_picture_path': 'https://photos.clarinea.fr/BL_25_en/600/partenaire/q/2367495__1923001285.jpg',
-     'description': 'Entrepreneur',
-     'flag_photo': 0,
-     'id': '28146',
-     'id_base': '2367495',
-     'minibase_addable': '0',
-     'name': 'Elon Musk',
-     'picture_path': 'partenaire/q/2367495__1923001285.jpg',
-     'proba': '0.937118',
-     'pseudo': 'Rob',
-     'ranking': '390',
-     'relative_id': '-1',
-     'valide_contrainte': '1'}
+    {'absolute_picture_path': 'https://photos.clarinea.fr/BL_25_en/600/partenaire/j/2367495__1915365987.jpg',
+    'corrupt': '0',
+    'description': 'Entrepreneur',
+    'flag_photo': 0,
+    'id': '50369',
+    'id_base': '2367495',
+    'name': 'Elon Musk',
+    'picture_path': 'partenaire/j/2367495__1915365987.jpg',
+    'proba': '0.881377',
+    'pseudo': 'XYZSug4r',
+    'ranking': '482',
+    'relative': '0',
+    'valide_contrainte': '1'}
 
   It's recommended that you call this function when Aki's progression is above 85%. You can get his current progression via ``Akinator.progression``
 
@@ -229,6 +230,12 @@ Akinator.session
 Akinator.signature
   A usually 9 or 10 digit number that represents the game's signature
 
+Akinator.uid
+  The game's UID (unique identifier) for authentication purposes
+
+Akinator.frontaddr
+  An IP address encoded in Base64; also for authentication purposes
+
 Akinator.question
   The current question that Akinator is asking the user. Examples of questions asked by Aki include: ``Is your character's gender female?``, ``Is your character more than 40 years old?``, ``Does your character create music?``, ``Is your character real?``, ``Is your character from a TV series?``, etc.
 
@@ -238,7 +245,7 @@ Akinator.progression
 Akinator.step
   An integer that tells you what question Akinator is on. This will be 0 on the first question, 1 on the second question, 2 on the third, 3 on the fourth, etc.
 
-The first 3 variables, ``server``, ``session``, and ``signature`` will remain unchanged, but the next 3, ``question``, ``progression``, and ``step`` will change as you go on.
+The first 5 variables—``server``, ``session``, ``signature``, ``uid``, and ``frontaddr``—will remain unchanged, but the last 3—``question``, ``progression``, and ``step``—will change as you go on.
 
 **Note**: There are 3 more variables that will be defined when the function ``Akinator.win()`` is called for the first time. These variables are documented above, underneath that function in the **Functions** section
 
@@ -254,7 +261,7 @@ InvalidLanguageError
   Raised when the user inputs an invalid language into ``Akinator.start_game(language=None)``
 
 AkiConnectionFailure
-  Raised if the Akinator API fails to connect for some reason. Base class for ``AkiTimedOut``, ``AkiNoQuestions``, and ``AkiFailedToConnect``
+  Raised if the Akinator API fails to connect for some reason. Base class for AkiTimedOut, AkiNoQuestions, AkiServerDown, and AkiTechnicalError
 
 AkiTimedOut
   Raised if the Akinator session times out. Derived from ``AkiConnectionFailure``
@@ -262,8 +269,11 @@ AkiTimedOut
 AkiNoQuestions
   Raised if the Akinator API runs out of questions to ask. This will happen once ``Akinator.step`` reaches 80. Derived from ``AkiConnectionFailure``
 
-AkiFailedToConnect
-  Raised when the Akinator API failed to connect some reason other than timing out or running out of questions. Derived from ``AkiConnectionFailure``
+AkiServerDown
+  Raised if Akinator's servers are down for the region you're running on. If this happens, try again later or use a different language. Derived from AkiConnectionFailure
+
+AkiTechnicalError
+  Raised if Aki's servers had a technical error. If this happens, try again later or use a different language. Derived from AkiConnectionFailure
 
 CantGoBackAnyFurther:
   Raised when the user is on the first question and tries to go back further by calling ``Akinator.back()``
