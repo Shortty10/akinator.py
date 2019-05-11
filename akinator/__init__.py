@@ -27,7 +27,7 @@ SOFTWARE.
 
 
 from .akinator import Akinator
-from .exceptions import InvalidAnswerError, InvalidLanguageError, AkiConnectionFailure, AkiTimedOut, AkiNoQuestions, AkiFailedToConnect, CantGoBackAnyFurther
+from .exceptions import *
 import os
 
 __version__ = open(os.path.join(os.path.dirname(__file__), "VERSION.txt")).read()
