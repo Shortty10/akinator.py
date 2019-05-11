@@ -22,14 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from .exceptions import InvalidAnswerError, InvalidLanguageError
+from .exceptions import InvalidAnswerError, InvalidLanguageError, AkiConnectionFailure, AkiTimedOut, AkiNoQuestions, AkiServerDown, AkiTechnicalError
 
 
 def ans_to_id(ans):
     """Convert an input answer string into an Answer ID for Akinator"""
 
-    if isinstance(ans, str):
-        ans = ans.lower()
+    ans = ans.lower()
     if ans == "yes" or ans == "y" or ans == "0":
         return "0"
     elif ans == "no" or ans == "n" or ans == "1":
@@ -58,7 +57,7 @@ def get_region(lang=None):
     if isinstance(lang, str):
         lang = lang.lower()
     if lang is None or lang == "en" or lang == "english":
-        return "srv11.akinator.com:9152"
+        return "srv13.akinator.com:9196"
     elif lang == "en2":
         return "srv6.akinator.com:9126"
     elif lang == "ar" or lang == "arabic":
@@ -66,31 +65,46 @@ def get_region(lang=None):
     elif lang == "cn" or lang == "chinese":
         return "srv11.akinator.com:9150"
     elif lang == "de" or lang == "german":
-        return "srv7.akinator.com:9145"
+        return "srv7.akinator.com:9241"
     elif lang == "es" or lang == "spanish":
         return "srv11.akinator.com:9151"
     elif lang == "fr" or lang == "french":
-        return "srv3.akinator.com:9165"
+        return "srv12.akinator.com:9185"
     elif lang == "fr2":
         return "srv3.akinator.com:9167"
     elif lang == "il" or lang == "hebrew":
         return "srv12.akinator.com:9189"
     elif lang == "it" or lang == "italian":
-        return "srv9.akinator.com:9131"
+        return "srv9.akinator.com:9214"
     elif lang == "jp" or lang == "japanese":
         return "srv11.akinator.com:9172"
     elif lang == "kr" or lang == "korean":
         return "srv2.akinator.com:9156"
     elif lang == "nl" or lang == "dutch":
-        return "srv9.akinator.com:9133"
+        return "srv7.akinator.com:9241"
     elif lang == "pl" or lang == "polish":
-        return "srv7.akinator.com:9143"
+        return "srv7.akinator.com:9240"
     elif lang == "pt" or lang == "portuguese":
-        return "srv3.akinator.com:9166"
+        return "srv2.akinator.com:9161"
     elif lang == "ru" or lang == "russian":
         return "srv12.akinator.com:9190"
     elif lang == "tr" or lang == "turkish":
-        return "srv3.akinator.com:9164"
+        return "srv3.akinator.com:9211"
     else:
         raise InvalidLanguageError(
             "You put \"{}\", which is an invalid language.".format(lang))
+
+
+def raise_connection_error(response):
+    """Raise the proper error if the API failed to connect"""
+
+    if response == "KO - SERVER DOWN":
+        raise AkiServerDown("Akinator's servers are down in this region. Try again later or use a different language")
+    elif response == "KO - TECHNICAL ERROR":
+        raise AkiTechnicalError("Akinator's servers have had a technical error. Try again later or use a different language")
+    elif response == "KO - TIMEOUT":
+        raise AkiTimedOut("Your Akinator session has timed out")
+    elif response == "WARN - NO QUESTION":
+        raise AkiNoQuestions("\"Akinator.step\" reached 80. No more questions")
+    else:
+        raise AkiConnectionFailure("An unknown error has occured. Server response: {}".format(response))
