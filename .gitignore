@@ -110,11 +110,13 @@ async_timeout/
 attr/
 cchardet/
 certifi/
+cffi/
 chardet/
 idna/
 idna_ssl.py
 multidict/
 pycares/
+pycparser/
 requests/
 typing_extensions.py
 typing.py
