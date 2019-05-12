@@ -4,7 +4,7 @@ akinator.py
 
 **An API wrapper for the online game, Akinator, written in Python**
 
-.. image:: https://img.shields.io/badge/pypi-v1.1.0-blue.svg
+.. image:: https://img.shields.io/badge/pypi-v1.1.1-blue.svg
     :target: https://pypi.python.org/pypi/akinator.py/
 
 .. image:: https://img.shields.io/badge/python-%E2%89%A53.5.3-yellow.svg
@@ -270,10 +270,10 @@ AkiNoQuestions
   Raised if the Akinator API runs out of questions to ask. This will happen once ``Akinator.step`` reaches 80. Derived from ``AkiConnectionFailure``
 
 AkiServerDown
-  Raised if Akinator's servers are down for the region you're running on. If this happens, try again later or use a different language. Derived from AkiConnectionFailure
+  Raised if Akinator's servers are down for the region you're running on. If this happens, try again later or use a different language. Derived from ``AkiConnectionFailure``
 
 AkiTechnicalError
-  Raised if Aki's servers had a technical error. If this happens, try again later or use a different language. Derived from AkiConnectionFailure
+  Raised if Aki's servers had a technical error. If this happens, try again later or use a different language. Derived from ``AkiConnectionFailure``
 
 CantGoBackAnyFurther:
   Raised when the user is on the first question and tries to go back further by calling ``Akinator.back()``
