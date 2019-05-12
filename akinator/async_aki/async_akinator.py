@@ -52,6 +52,8 @@ class Akinator():
         self.step = None
 
     def _update(self, resp, start=False):
+        """Update class variables"""
+
         if start:
             self.session = resp["parameters"]["identification"]["session"]
             self.signature = resp["parameters"]["identification"]["signature"]
@@ -64,11 +66,13 @@ class Akinator():
             self.step = int(resp["parameters"]["step"])
 
     async def _get_session_info(self):
-        session_regex = re.compile("var uid_ext_session = '(.*)'\\;\\n.*var frontaddr = '(.*)'\\;")
+        """Get uid and frontaddr from akinator.com/game"""
+
+        info_regex = re.compile("var uid_ext_session = '(.*)'\\;\\n.*var frontaddr = '(.*)'\\;")
 
         async with aiohttp.ClientSession() as session:
             async with session.get("https://en.akinator.com/game") as w:
-                match = session_regex.search(await w.text())
+                match = info_regex.search(await w.text())
 
         self.uid, self.frontaddr = match.groups()[0], match.groups()[1]
 

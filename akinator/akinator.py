@@ -70,10 +70,10 @@ class Akinator():
     def _get_session_info(self):
         """Get uid and frontaddr from akinator.com/game"""
 
-        session_regex = re.compile("var uid_ext_session = '(.*)'\\;\\n.*var frontaddr = '(.*)'\\;")
+        info_regex = re.compile("var uid_ext_session = '(.*)'\\;\\n.*var frontaddr = '(.*)'\\;")
         r = requests.get("https://en.akinator.com/game")
 
-        match = session_regex.search(r.text)
+        match = info_regex.search(r.text)
         self.uid, self.frontaddr = match.groups()[0], match.groups()[1]
 
     def start_game(self, language=None):
