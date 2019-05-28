@@ -31,9 +31,10 @@ setup(
     description="An API wrapper for the online game, Akinator, written in Python",
     long_description=READ_ME,
     long_description_content_type="text/x-rst",
+    keywords="akinator api",
     install_requires=REQUIREMENTS,
     extras_require=EXTRAS,
-    keywords="akinator api",
+    python_requires=">=3.5.3",
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.5",
