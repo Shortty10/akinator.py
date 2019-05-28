@@ -4,7 +4,7 @@ akinator.py
 
 **An API wrapper for the online game, Akinator, written in Python**
 
-.. image:: https://img.shields.io/badge/pypi-v1.1.1-blue.svg
+.. image:: https://img.shields.io/badge/pypi-v1.1.3-blue.svg
     :target: https://pypi.python.org/pypi/akinator.py/
 
 .. image:: https://img.shields.io/badge/python-%E2%89%A53.5.3-yellow.svg
@@ -261,7 +261,7 @@ InvalidLanguageError
   Raised when the user inputs an invalid language into ``Akinator.start_game(language=None)``
 
 AkiConnectionFailure
-  Raised if the Akinator API fails to connect for some reason. Base class for AkiTimedOut, AkiNoQuestions, AkiServerDown, and AkiTechnicalError
+  Raised if the Akinator API fails to connect for some reason. Base class for ``AkiTimedOut``, ``AkiNoQuestions``, ``AkiServerDown``, and ``AkiTechnicalError``
 
 AkiTimedOut
   Raised if the Akinator session times out. Derived from ``AkiConnectionFailure``
