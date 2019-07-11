@@ -255,10 +255,10 @@ Exceptions
 Exceptions that are thrown by the library
 
 InvalidAnswerError
-  Raised when the user inputs an invalid answer into ``Akinator.answer(ans)``
+  Raised when the user inputs an invalid answer into ``Akinator.answer(ans)``. Subclassed from ``ValueError``
 
 InvalidLanguageError
-  Raised when the user inputs an invalid language into ``Akinator.start_game(language=None)``
+  Raised when the user inputs an invalid language into ``Akinator.start_game(language=None)``. Subclassed from ``ValueError``
 
 AkiConnectionFailure
   Raised if the Akinator API fails to connect for some reason. Base class for ``AkiTimedOut``, ``AkiNoQuestions``, ``AkiServerDown``, and ``AkiTechnicalError``
