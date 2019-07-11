@@ -267,7 +267,7 @@ AkiTimedOut
   Raised if the Akinator session times out. Derived from ``AkiConnectionFailure``
 
 AkiNoQuestions
-  Raised if the Akinator API runs out of questions to ask. This will happen once ``Akinator.step`` reaches 80. Derived from ``AkiConnectionFailure``
+  Raised if the Akinator API runs out of questions to ask. This will happen if ``Akinator.step`` is at 79 and the ``answer`` function is called again. Derived from ``AkiConnectionFailure``
 
 AkiServerDown
   Raised if Akinator's servers are down for the region you're running on. If this happens, try again later or use a different language. Derived from ``AkiConnectionFailure``
