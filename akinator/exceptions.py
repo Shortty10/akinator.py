@@ -23,18 +23,19 @@ SOFTWARE.
 """
 
 
-class InvalidAnswerError(Exception):
+class InvalidAnswerError(ValueError):
     """Raised when the user inputs an invalid answer"""
     pass
 
 
-class InvalidLanguageError(Exception):
+class InvalidLanguageError(ValueError):
     """Raised when the user inputs an invalid language"""
     pass
 
 
 class AkiConnectionFailure(Exception):
     """Raised if the Akinator API fails to connect for some reason. Base class for AkiTimedOut, AkiNoQuestions, AkiServerDown, and AkiTechnicalError"""
+    pass
 
 
 class AkiTimedOut(AkiConnectionFailure):
@@ -54,6 +55,7 @@ class AkiServerDown(AkiConnectionFailure):
 
 class AkiTechnicalError(AkiConnectionFailure):
     """Raised if Aki's servers had a technical error. If this happens, try again later or use a different language. Derived from AkiConnectionFailure"""
+    pass
 
 
 class CantGoBackAnyFurther(Exception):
