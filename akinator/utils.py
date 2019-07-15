@@ -65,13 +65,13 @@ def get_region(lang=None):
     elif lang == "cn" or lang == "chinese":
         return "srv11.akinator.com:9150"
     elif lang == "de" or lang == "german":
-        return "srv7.akinator.com:9241"
+        return "srv14.akinator.com:9283"
     elif lang == "es" or lang == "spanish":
         return "srv11.akinator.com:9151"
     elif lang == "fr" or lang == "french":
         return "srv12.akinator.com:9185"
     elif lang == "fr2":
-        return "srv3.akinator.com:9167"
+        return "srv3.akinator.com:9217"
     elif lang == "il" or lang == "hebrew":
         return "srv12.akinator.com:9189"
     elif lang == "it" or lang == "italian":
@@ -81,13 +81,13 @@ def get_region(lang=None):
     elif lang == "kr" or lang == "korean":
         return "srv2.akinator.com:9156"
     elif lang == "nl" or lang == "dutch":
-        return "srv7.akinator.com:9241"
+        return "srv9.akinator.com:9215"
     elif lang == "pl" or lang == "polish":
-        return "srv7.akinator.com:9240"
+        return "srv14.akinator.com:9282"
     elif lang == "pt" or lang == "portuguese":
         return "srv2.akinator.com:9161"
     elif lang == "ru" or lang == "russian":
-        return "srv12.akinator.com:9190"
+        raise AkiConnectionFailure("This server is currently not available. The library will be updated when it's working again.")
     elif lang == "tr" or lang == "turkish":
         return "srv3.akinator.com:9211"
     else:
