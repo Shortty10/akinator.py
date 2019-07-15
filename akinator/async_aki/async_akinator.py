@@ -55,13 +55,13 @@ class Akinator():
         """Update class variables"""
 
         if start:
-            self.session = resp["parameters"]["identification"]["session"]
-            self.signature = resp["parameters"]["identification"]["signature"]
-            self.question = resp["parameters"]["step_information"]["question"]
+            self.session = int(resp["parameters"]["identification"]["session"])
+            self.signature = int(resp["parameters"]["identification"]["signature"])
+            self.question = str(resp["parameters"]["step_information"]["question"])
             self.progression = float(resp["parameters"]["step_information"]["progression"])
             self.step = int(resp["parameters"]["step_information"]["step"])
         else:
-            self.question = resp["parameters"]["question"]
+            self.question = str(resp["parameters"]["question"])
             self.progression = float(resp["parameters"]["progression"])
             self.step = int(resp["parameters"]["step"])
 
