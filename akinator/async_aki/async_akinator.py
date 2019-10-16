@@ -27,12 +27,15 @@ from ..exceptions import CantGoBackAnyFurther
 import aiohttp
 import asyncio
 import re
+import time
+import json
+
 
 #* URLs for the API requests
-NEW_SESSION_URL = "https://{}/ws/new_session?partner=1&player=website-desktop&uid_ext_session={}&frontaddr={}&constraint=ETAT%%3C%%3E%%27AV%%27&constraint=ETAT<>'AV'"
-ANSWER_URL = "https://{}/ws/answer?callback=&session={}&signature={}&step={}&answer={}"
-BACK_URL = "https://{}/ws/answer?callback=&session={}&signature={}&step={}&answer=-1"
-WIN_URL = "https://{}/ws/list?callback=&session={}&signature={}&step={}"
+NEW_SESSION_URL = "https://{}/ws/new_session?callback=jQuery331005089254861332693_{}&partner=1&player=website-desktop&uid_ext_session={}&frontaddr={}&constraint=ETAT%%3C%%3E%%27AV%%27&constraint=ETAT<>'AV'"
+ANSWER_URL = "https://{}/ws/answer?callback=jQuery331005089254861332693_{}&session={}&signature={}&step={}&answer={}"
+BACK_URL = "https://{}/ws/cancel_answer?callback=jQuery331005089254861332693_{}&session={}&signature={}&step={}&answer=-1"
+WIN_URL = "https://{}/ws/list?callback=jQuery331005089254861332693_{}&session={}&signature={}&step={}"
 
 
 class Akinator():
@@ -46,6 +49,7 @@ class Akinator():
         self.signature = None
         self.uid = None
         self.frontaddr = None
+        self.timestamp = None
 
         self.question = None
         self.progression = None
@@ -65,6 +69,11 @@ class Akinator():
             self.progression = float(resp["parameters"]["progression"])
             self.step = int(resp["parameters"]["step"])
 
+    def _parse_response(self, response):
+        """Parse the JSON response and turn it into a Python object"""
+
+        return json.loads(",".join(response.split("(")[1::])[:-1])
+
     async def _get_session_info(self):
         """Get uid and frontaddr from akinator.com/game"""
 
@@ -80,32 +89,43 @@ class Akinator():
         """(coroutine)
         Start an Akinator game. Run this function first before the others. Returns a string containing the first question
 
-        The "language" parameter can be left as None for English, the default language, or it can be set to one of these:
-            - "en": English
+        The "language" parameter can be left as None for English, the default language, or it can be set to one of the following (case-insensitive):
+            - "en": English (default)
             - "en2": Second English server. Use if the main one is down
+            - "en3": Third English server. Use if the other two are down
+            - "en_animals": English server for guessing animals
+            - "en_objects": English server for guessing objects
             - "ar": Arabic
             - "cn": Chinese
             - "de": German
+            - "de_animals": German server for guessing animals
             - "es": Spanish
+            - "es2": Second Spanish server. Use if the main one is down
+            - "es_animals": Spanish server for guessing animals
             - "fr": French
             - "fr2": Second French server. Use if the main one is down
+            - "fr_animals": French server for guessing animals
+            - "fr_objects": French server for guessing objects
             - "il": Hebrew
             - "it": Italian
+            - "it_animals": Italian server for guessing animals
             - "jp": Japanese
+            - "jp_animals": Japanese server for guessing animals
             - "kr": Korean
             - "nl": Dutch
             - "pl": Polish
             - "pt": Portuguese
             - "ru": Russian
             - "tr": Turkish
-        You can also put the name of the language spelled out, like "spanish", "korean", etc.
+        You can also put the name of the language spelled out, like "spanish", "korean", "french_animals", etc.
         """
         self.server = get_region(language)
         await self._get_session_info()
+        self.timestamp = int(time.time() * 1000)
 
         async with aiohttp.ClientSession() as session:
-            async with session.get(NEW_SESSION_URL.format(self.server, self.uid, self.frontaddr)) as w:
-                resp = await w.json()
+            async with session.get(NEW_SESSION_URL.format(self.server, self.timestamp, self.uid, self.frontaddr)) as w:
+                resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
             self._update(resp, True)
@@ -124,25 +144,11 @@ class Akinator():
             - "probably" OR "p" OR "3" for PROBABLY
             - "probably not" OR "pn" OR "4" for PROBABLY NOT
         """
-        if isinstance(ans, int):
-            if ans >= 0 and ans <= 4:
-                ans = str(ans)
-            else:
-                raise InvalidAnswerError("""
-                You put "{}", which is an invalid answer.
-                The answer must be one of these:
-                    - "yes" OR "y" OR "0" for YES
-                    - "no" OR "n" OR "1" for NO
-                    - "i" OR "idk" OR "i dont know" OR "i don't know" OR "2" for I DON'T KNOW
-                    - "probably" OR "p" OR "3" for PROBABLY
-                    - "probably not" OR "pn" OR "4" for PROBABLY NOT
-                """.format(ans))
-        else:
-            ans = ans_to_id(ans)
+        ans = ans_to_id(ans)
 
         async with aiohttp.ClientSession() as session:
-            async with session.get(ANSWER_URL.format(self.server, self.session, self.signature, self.step, ans)) as w:
-                resp = await w.json()
+            async with session.get(ANSWER_URL.format(self.server, self.timestamp, self.session, self.signature, self.step, ans)) as w:
+                resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
             self._update(resp)
@@ -160,8 +166,8 @@ class Akinator():
             raise CantGoBackAnyFurther("You were on the first question and couldn't go back any further")
 
         async with aiohttp.ClientSession() as session:
-            async with session.get(BACK_URL.format(self.server, self.session, self.signature, self.step)) as w:
-                resp = await w.json()
+            async with session.get(BACK_URL.format(self.server, self.timestamp, self.session, self.signature, self.step)) as w:
+                resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
             self._update(resp)
@@ -183,8 +189,8 @@ class Akinator():
         It's recommended that you call this function when Aki's progression is above 85%. You can get his current progression via "Akinator.progression"
         """
         async with aiohttp.ClientSession() as session:
-            async with session.get(WIN_URL.format(self.server, self.session, self.signature, self.step)) as w:
-                resp = await w.json()
+            async with session.get(WIN_URL.format(self.server, self.timestamp, self.session, self.signature, self.step)) as w:
+                resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
             guess = resp["parameters"]["elements"][0]["element"]
