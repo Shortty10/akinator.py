@@ -4,7 +4,7 @@ akinator.py
 
 **An API wrapper for the online game, Akinator, written in Python**
 
-.. image:: https://img.shields.io/badge/pypi-v1.1.6-blue.svg
+.. image:: https://img.shields.io/badge/pypi-v2.0.0-blue.svg
     :target: https://pypi.python.org/pypi/akinator.py/
 
 .. image:: https://img.shields.io/badge/python-%E2%89%A53.5.3-yellow.svg
@@ -61,25 +61,30 @@ Here's a quick little example of the library being used to make a simple, text-b
 
   aki = akinator.Akinator()
 
-  def main():
+  try:
       q = aki.start_game()
-      while aki.progression <= 85:
-          a = input(q + "\n\t")
-          if a == "b":
-              try:
-                  q = aki.back()
-              except akinator.CantGoBackAnyFurther:
-                  pass
-          else:
-              q = aki.answer(a)
-      aki.win()
-      correct = input(f"It's {aki.name} ({aki.description})! Was I correct?\n{aki.picture}\n\t")
-      if correct.lower() == "yes" or correct.lower() == "y":
-          print("Yay\n")
-      else:
-          print("Oof\n")
+  except akinator.AkiConnectionFailure:
+      try:
+          q = aki.start_game("en2")
+      except akinator.AkiConnectionFailure:
+          q = aki.start_game("en3")
 
-  main()
+  while aki.progression <= 80:
+      a = input(q + "\n\t")
+      if a == "b":
+          try:
+              q = aki.back()
+          except akinator.CantGoBackAnyFurther:
+              pass
+      else:
+          q = aki.answer(a)
+  aki.win()
+
+  correct = input(f"It's {aki.name} ({aki.description})! Was I correct?\n{aki.picture}\n\t")
+  if correct.lower() == "yes" or correct.lower() == "y":
+      print("Yay\n")
+  else:
+      print("Oof\n")
 
 Here's the same game as above, but using the async version of the library instead:
 
@@ -92,8 +97,15 @@ Here's the same game as above, but using the async version of the library instea
   aki = Akinator()
 
   async def main():
-      q = await aki.start_game()
-      while aki.progression <= 85:
+      try:
+          q = await aki.start_game()
+      except akinator.AkiConnectionFailure:
+          try:
+              q = await aki.start_game("en2")
+          except akinator.AkiConnectionFailure:
+              q = await aki.start_game("en3")
+
+      while aki.progression <= 80:
           a = input(q + "\n\t")
           if a == "b":
               try:
@@ -103,6 +115,7 @@ Here's the same game as above, but using the async version of the library instea
           else:
               q = await aki.answer(a)
       await aki.win()
+
       correct = input(f"It's {aki.name} ({aki.description})! Was I correct?\n{aki.picture}\n\t")
       if correct.lower() == "yes" or correct.lower() == "y":
           print("Yay\n")
@@ -133,9 +146,11 @@ Alternatively, you can view the ``VERSION.txt`` file
 
 A class that represents an Akinator game.
 
-The first thing you want to do after calling an instance of this class is to call ``Akinator.start_game()``.
+The first thing you want to do after creating an instance of this class is to call ``Akinator.start_game()``.
 
-To get the regular Akinator class, make sure you've put ``import akinator`` at the top of your code. From there you can easily access the class via ``aki = akinator.Akinator()``. To get the async version of the class, make sure you have ``import akinator.async_aki`` or ``from akinator.async_aki import Akinator`` in your code and you'll be able to get the async Akinator class just as easily (Refer to the code examples above).
+To get the **regular** Akinator class, make sure you've put ``import akinator`` at the top of your code. From there you can easily access the class via ``aki = akinator.Akinator()``.
+
+To get the **async** version of the class, make sure you have ``import akinator.async_aki`` or ``from akinator.async_aki import Akinator`` in your code and you'll be able to get the async Akinator class just as easily (Refer to the code examples above).
 
 Functions
 =========
@@ -145,19 +160,29 @@ Functions
 Akinator.start_game(language=None)
   Start an Akinator game. Run this function first before the others. Returns a string containing the first question
 
-  The ``language`` parameter can be left as None for English, the default language, or it can be set to one of these (case-insensitive):
+  The ``language`` parameter can be left as None for English, the default language, or it can be set to one of the following (case-insensitive):
 
-  - ``en``: English
+  - ``en``: English (default)
   - ``en2``: Second English server. Use if the main one is down
+  - ``en3``: Third English server. Use if the other two are down
+  - ``en_animals``: English server for guessing animals. Here, Akinator will attempt to guess the animal you're thinking instead of a character
+  - ``en_objects``: English server for guessing objects. Here, Akinator will attempt to guess the object you're thinking instead of a character
   - ``ar``: Arabic
   - ``cn``: Chinese
   - ``de``: German
+  - ``de_animals``: German server for guessing animals
   - ``es``: Spanish
+  - ``es2``: Second Spanish server. Use if the main one is down
+  - ``es_animals``: Spanish server for guessing animals
   - ``fr``: French
   - ``fr2``: Second French server. Use if the main one is down
+  - ``fr_animals``: French server for guessing animals
+  - ``fr_objects``: French server for guessing objects
   - ``il``: Hebrew
   - ``it``: Italian
+  - ``it_animals``: Italian server for guessing animals
   - ``jp``: Japanese
+  - ``jp_animals``: Japanese server for guessing animals
   - ``kr``: Korean
   - ``nl``: Dutch
   - ``pl``: Polish
@@ -165,7 +190,7 @@ Akinator.start_game(language=None)
   - ``ru``: Russian
   - ``tr``: Turkish
 
-  You can also put the name of the language spelled out, like ``spanish``, ``korean``, etc.
+  You can also put the name of the language spelled out, like ``spanish``, ``korean``, ``french_animals``, etc.
 
   If you put something else entirely, then then the ``InvalidLanguageError`` exception will be raised
 
@@ -200,21 +225,21 @@ Akinator.win()
 
   .. code-block:: javascript
 
-    {'absolute_picture_path': 'https://photos.clarinea.fr/BL_25_en/600/partenaire/j/2367495__1915365987.jpg',
-    'corrupt': '0',
-    'description': 'Entrepreneur',
-    'flag_photo': 0,
-    'id': '50369',
-    'id_base': '2367495',
-    'name': 'Elon Musk',
-    'picture_path': 'partenaire/j/2367495__1915365987.jpg',
-    'proba': '0.881377',
-    'pseudo': 'XYZSug4r',
-    'ranking': '482',
-    'relative': '0',
-    'valide_contrainte': '1'}
+    {'absolute_picture_path': 'https://photos.clarinea.fr/BL_15_en/600/partenaire/y/2367495__1053312468.jpg',
+     'corrupt': '0',
+     'description': 'Entrepreneur',
+     'flag_photo': 0,
+     'id': '52848',
+     'id_base': '2367495',
+     'name': 'Elon Musk',
+     'picture_path': 'partenaire/y/2367495__1053312468.jpg',
+     'proba': '0.804791',
+     'pseudo': 'X',
+     'ranking': '605',
+     'relative': '0',
+     'valide_contrainte': '1'}
 
-  It's recommended that you call this function when Aki's progression is above 85%. You can get his current progression via ``Akinator.progression``
+  It's recommended that you call this function when Aki's progression is above 80%. You can get his current progression via ``Akinator.progression``
 
 Variables
 =========
@@ -222,7 +247,7 @@ Variables
 These variables contain important information about the Akinator game. Please don't change any of these values in your program. It'll definitely break things.
 
 Akinator.server
-  The server this Akinator game is using. Depends on what you put for the language param in ``Akinator.start_game()`` (e.g., ``"srv11.akinator.com:9152"``, ``"srv11.akinator.com:9150"``, etc.)
+  The server this Akinator game is using. Depends on what you put for the language param in ``Akinator.start_game()`` (e.g., ``"srv2.akinator.com:9162"``, ``"srv6.akinator.com:9127"``, etc.)
 
 Akinator.session
   A number, usually in between 0 and 100, that represents the game's session
@@ -236,16 +261,19 @@ Akinator.uid
 Akinator.frontaddr
   An IP address encoded in Base64; also for authentication purposes
 
+Akinator.timestamp
+  A POSIX timestamp for when ``Akinator.start_game()`` was called
+
 Akinator.question
   The current question that Akinator is asking the user. Examples of questions asked by Aki include: ``Is your character's gender female?``, ``Is your character more than 40 years old?``, ``Does your character create music?``, ``Is your character real?``, ``Is your character from a TV series?``, etc.
 
 Akinator.progression
-  A floating point number that represents a percentage showing how close Aki thinks he is to guessing your character. I recommend keeping track of this value and calling ``Akinator.win()`` when it's above 85 or 90. In most cases, this is about when Aki will have it narrowed down to one choice, which will hopefully be the correct one.
+  A floating point number that represents a percentage showing how close Aki thinks he is to guessing your character. I recommend keeping track of this value and calling ``Akinator.win()`` when it's above 80 or 90. In most cases, this is about when Aki will have it narrowed down to one choice, which will hopefully be the correct one.
 
 Akinator.step
   An integer that tells you what question Akinator is on. This will be 0 on the first question, 1 on the second question, 2 on the third, 3 on the fourth, etc.
 
-The first 5 variables—``server``, ``session``, ``signature``, ``uid``, and ``frontaddr``—will remain unchanged, but the last 3—``question``, ``progression``, and ``step``—will change as you go on.
+The first 6 variables—``server``, ``session``, ``signature``, ``uid``, ``frontaddr``, and ``timestamp``—will remain unchanged, but the last 3—``question``, ``progression``, and ``step``—will change as you go on.
 
 **Note**: There are 3 more variables that will be defined when the function ``Akinator.win()`` is called for the first time. These variables are documented above, underneath that function in the **Functions** section
 
