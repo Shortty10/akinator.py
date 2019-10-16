@@ -28,7 +28,7 @@ from .exceptions import InvalidAnswerError, InvalidLanguageError, AkiConnectionF
 def ans_to_id(ans):
     """Convert an input answer string into an Answer ID for Akinator"""
 
-    ans = ans.lower()
+    ans = str(ans).lower()
     if ans == "yes" or ans == "y" or ans == "0":
         return "0"
     elif ans == "no" or ans == "n" or ans == "1":
@@ -54,30 +54,53 @@ def ans_to_id(ans):
 def get_region(lang=None):
     """Returns an Aki server based on what language is input"""
 
-    if isinstance(lang, str):
-        lang = lang.lower()
+    if lang:
+        lang = lang.lower().replace(" ", "")
+        if lang.endswith(("animal", "object")):
+            lang += "s"
+
     if lang is None or lang == "en" or lang == "english":
-        return "srv13.akinator.com:9196"
-    elif lang == "en2":
+        return "srv2.akinator.com:9162"
+    elif lang == "en2" or lang == "english2":
         return "srv6.akinator.com:9126"
+    elif lang == "en3" or lang == "english3":
+        return "srv11.akinator.com:9152"
+    elif lang == "en_animals" or lang == "english_animals":
+        return "srv2.akinator.com:9255"
+    elif lang == "en_objects" or lang == "english_objects":
+        return "srv2.akinator.com:9265"
     elif lang == "ar" or lang == "arabic":
         return "srv2.akinator.com:9155"
     elif lang == "cn" or lang == "chinese":
         return "srv11.akinator.com:9150"
     elif lang == "de" or lang == "german":
         return "srv14.akinator.com:9283"
+    elif lang == "de_animals" or lang == "german_animals":
+        return "srv14.akinator.com:9284"
     elif lang == "es" or lang == "spanish":
+        return "srv6.akinator.com:9127"
+    elif lang == "es2" or lang == "spanish2":
         return "srv11.akinator.com:9151"
+    elif lang == "es_animals" or lang == "spanish_animals":
+        return "srv13.akinator.com:9257"
     elif lang == "fr" or lang == "french":
-        return "srv12.akinator.com:9185"
-    elif lang == "fr2":
         return "srv3.akinator.com:9217"
+    elif lang == "fr2" or lang == "french2":
+        return "srv12.akinator.com:9185"
+    elif lang == "fr_animals" or lang == "french_animals":
+        return "srv3.akinator.com:9259"
+    elif lang == "fr_objects" or lang == "french_objects":
+        return "srv3.akinator.com:9218"
     elif lang == "il" or lang == "hebrew":
         return "srv12.akinator.com:9189"
     elif lang == "it" or lang == "italian":
         return "srv9.akinator.com:9214"
+    elif lang == "it_animals" or lang == "italian_animals":
+        return "srv9.akinator.com:9261"
     elif lang == "jp" or lang == "japanese":
         return "srv11.akinator.com:9172"
+    elif lang == "jp_animals" or lang == "japanese_animals":
+        return "srv11.akinator.com:9263"
     elif lang == "kr" or lang == "korean":
         return "srv2.akinator.com:9156"
     elif lang == "nl" or lang == "dutch":
@@ -87,7 +110,7 @@ def get_region(lang=None):
     elif lang == "pt" or lang == "portuguese":
         return "srv2.akinator.com:9161"
     elif lang == "ru" or lang == "russian":
-        raise AkiConnectionFailure("This server is currently not available. The library will be updated when it's working again.")
+        return "srv12.akinator.com:9190"
     elif lang == "tr" or lang == "turkish":
         return "srv3.akinator.com:9211"
     else:
