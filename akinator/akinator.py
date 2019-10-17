@@ -118,8 +118,8 @@ class Akinator():
         You can also put the name of the language spelled out, like "spanish", "korean", "french_animals", etc.
         """
         self.server = get_region(language)
+        self.timestamp = time.time()
         self._get_session_info()
-        self.timestamp = int(time.time() * 1000)
 
         r = requests.get(NEW_SESSION_URL.format(self.server, self.timestamp, self.uid, self.frontaddr))
         resp = self._parse_response(r.text)

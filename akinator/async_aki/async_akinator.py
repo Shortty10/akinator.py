@@ -120,8 +120,8 @@ class Akinator():
         You can also put the name of the language spelled out, like "spanish", "korean", "french_animals", etc.
         """
         self.server = get_region(language)
+        self.timestamp = time.time()
         await self._get_session_info()
-        self.timestamp = int(time.time() * 1000)
 
         async with aiohttp.ClientSession() as session:
             async with session.get(NEW_SESSION_URL.format(self.server, self.timestamp, self.uid, self.frontaddr)) as w:
