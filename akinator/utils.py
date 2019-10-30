@@ -114,8 +114,7 @@ def get_region(lang=None):
     elif lang == "tr" or lang == "turkish":
         return "srv3.akinator.com:9211"
     else:
-        raise InvalidLanguageError(
-            "You put \"{}\", which is an invalid language.".format(lang))
+        raise InvalidLanguageError("You put \"{}\", which is an invalid language.".format(lang))
 
 
 def raise_connection_error(response):
