@@ -157,7 +157,7 @@ Functions
 
 **Note**: In the async version, all the below functions are coroutines and must be awaited
 
-start_game(language=None)
+start_game(*language=None*)
   Start an Akinator game. Run this function first before the others. Returns a string containing the first question
 
   The ``language`` parameter can be left as None for English, the default language, or it can be set to one of the following (case-insensitive):
@@ -194,7 +194,7 @@ start_game(language=None)
 
   If you put something else entirely, then then the ``InvalidLanguageError`` exception will be raised
 
-answer(ans)
+answer(*ans*)
   Answer the current question, which you can find with ``Akinator.question``. Returns a string containing the next question
 
   The ``ans`` parameter must be one of these (case-insensitive):
@@ -215,11 +215,11 @@ back()
 win()
   Get Aki's first guess for who the character you're thinking of is based on your answers to the questions so far.
 
-  This function defines 3 new variables:
+  This function defines 3 new class variables:
 
-  - ``Akinator.name``: The name of the character Aki guessed
-  - ``Akinator.description``: A short description of that character
-  - ``Akinator.picture``: A direct link to an image of the character
+  - ``name``: The name of the character Aki guessed
+  - ``description``: A short description of that character
+  - ``picture``: A direct link to an image of the character
 
   This function will also return a dictionary containing the above values plus some additional ones. Here's an example of what the dict looks like:
 
