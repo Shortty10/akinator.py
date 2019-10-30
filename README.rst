@@ -4,7 +4,7 @@ akinator.py
 
 **An API wrapper for the online game, Akinator, written in Python**
 
-.. image:: https://img.shields.io/badge/pypi-v2.0.1-blue.svg
+.. image:: https://img.shields.io/badge/pypi-v2.0.3-blue.svg
     :target: https://pypi.python.org/pypi/akinator.py/
 
 .. image:: https://img.shields.io/badge/python-%E2%89%A53.5.3-yellow.svg
@@ -63,10 +63,10 @@ Here's a quick little example of the library being used to make a simple, text-b
 
   try:
       q = aki.start_game()
-  except akinator.AkiConnectionFailure:
+  except (akinator.AkiServerDown, akinator.AkiTechnicalError):
       try:
           q = aki.start_game("en2")
-      except akinator.AkiConnectionFailure:
+      except (akinator.AkiServerDown, akinator.AkiTechnicalError):
           q = aki.start_game("en3")
 
   while aki.progression <= 80:
@@ -99,10 +99,10 @@ Here's the same game as above, but using the async version of the library instea
   async def main():
       try:
           q = await aki.start_game()
-      except akinator.AkiConnectionFailure:
+      except (akinator.AkiServerDown, akinator.AkiTechnicalError):
           try:
               q = await aki.start_game("en2")
-          except akinator.AkiConnectionFailure:
+          except (akinator.AkiServerDown, akinator.AkiTechnicalError):
               q = await aki.start_game("en3")
 
       while aki.progression <= 80:
@@ -148,7 +148,7 @@ A class that represents an Akinator game.
 
 The first thing you want to do after creating an instance of this class is to call ``Akinator.start_game()``.
 
-To get the **regular** Akinator class, make sure you've put ``import akinator`` at the top of your code. From there you can easily access the class via ``aki = akinator.Akinator()``.
+To get the **regular** Akinator class, make sure you've put ``import akinator`` at the top of your code. From there you can easily access the class via ``akinator.Akinator()``.
 
 To get the **async** version of the class, make sure you have ``import akinator.async_aki`` or ``from akinator.async_aki import Akinator`` in your code and you'll be able to get the async Akinator class just as easily (Refer to the code examples above).
 
@@ -157,7 +157,7 @@ Functions
 
 **Note**: In the async version, all the below functions are coroutines and must be awaited
 
-Akinator.start_game(language=None)
+start_game(language=None)
   Start an Akinator game. Run this function first before the others. Returns a string containing the first question
 
   The ``language`` parameter can be left as None for English, the default language, or it can be set to one of the following (case-insensitive):
@@ -194,7 +194,7 @@ Akinator.start_game(language=None)
 
   If you put something else entirely, then then the ``InvalidLanguageError`` exception will be raised
 
-Akinator.answer(ans)
+answer(ans)
   Answer the current question, which you can find with ``Akinator.question``. Returns a string containing the next question
 
   The ``ans`` parameter must be one of these (case-insensitive):
@@ -207,12 +207,12 @@ Akinator.answer(ans)
 
   If it's something else, then the ``InvalidAnswerError`` exception will be raised
 
-Akinator.back()
+back()
   Goes back to the previous question. Returns a string containing that question
 
   If you're on the first question and you try to go back, the ``CantGoBackAnyFurther`` exception will be raised
 
-Akinator.win()
+win()
   Get Aki's first guess for who the character you're thinking of is based on your answers to the questions so far.
 
   This function defines 3 new variables:
@@ -246,31 +246,31 @@ Variables
 
 These variables contain important information about the Akinator game. Please don't change any of these values in your program. It'll definitely break things.
 
-Akinator.server
+server
   The server this Akinator game is using. Depends on what you put for the language param in ``Akinator.start_game()`` (e.g., ``"srv2.akinator.com:9162"``, ``"srv6.akinator.com:9127"``, etc.)
 
-Akinator.session
+session
   A number, usually in between 0 and 100, that represents the game's session
 
-Akinator.signature
+signature
   A usually 9 or 10 digit number that represents the game's signature
 
-Akinator.uid
+uid
   The game's UID (unique identifier) for authentication purposes
 
-Akinator.frontaddr
+frontaddr
   An IP address encoded in Base64; also for authentication purposes
 
-Akinator.timestamp
+timestamp
   A POSIX timestamp for when ``Akinator.start_game()`` was called
 
-Akinator.question
+question
   The current question that Akinator is asking the user. Examples of questions asked by Aki include: ``Is your character's gender female?``, ``Is your character more than 40 years old?``, ``Does your character create music?``, ``Is your character real?``, ``Is your character from a TV series?``, etc.
 
-Akinator.progression
+progression
   A floating point number that represents a percentage showing how close Aki thinks he is to guessing your character. I recommend keeping track of this value and calling ``Akinator.win()`` when it's above 80 or 90. In most cases, this is about when Aki will have it narrowed down to one choice, which will hopefully be the correct one.
 
-Akinator.step
+step
   An integer that tells you what question Akinator is on. This will be 0 on the first question, 1 on the second question, 2 on the third, 3 on the fourth, etc.
 
 The first 6 variables—``server``, ``session``, ``signature``, ``uid``, ``frontaddr``, and ``timestamp``—will remain unchanged, but the last 3—``question``, ``progression``, and ``step``—will change as you go on.
