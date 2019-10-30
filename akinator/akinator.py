@@ -44,6 +44,9 @@ class Akinator():
 
     The first thing you want to do after calling an instance of this class is to call "Akinator.start_game()".
     """
+    __slots__ = ("server", "session", "signature", "uid", "frontaddr", "timestamp",
+                 "question", "progression", "step", "name", "description", "picture")
+
     def __init__(self):
         self.server = None
         self.session = None
@@ -117,8 +120,8 @@ class Akinator():
             - "tr": Turkish
         You can also put the name of the language spelled out, like "spanish", "korean", "french_animals", etc.
         """
-        self.server = get_region(language)
         self.timestamp = time.time()
+        self.server = get_region(language)
         self._get_session_info()
 
         r = requests.get(NEW_SESSION_URL.format(self.server, self.timestamp, self.uid, self.frontaddr))
