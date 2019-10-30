@@ -6,10 +6,10 @@ aki = akinator.Akinator()
 
 try:
     q = aki.start_game()
-except akinator.AkiConnectionFailure:
+except (akinator.AkiServerDown, akinator.AkiTechnicalError):
     try:
         q = aki.start_game("en2")
-    except akinator.AkiConnectionFailure:
+    except (akinator.AkiServerDown, akinator.AkiTechnicalError):
         q = aki.start_game("en3")
 
 while aki.progression <= 80:
