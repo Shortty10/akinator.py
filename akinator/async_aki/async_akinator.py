@@ -25,12 +25,11 @@ SOFTWARE.
 from ..utils import ans_to_id, get_region, raise_connection_error
 from ..exceptions import CantGoBackAnyFurther
 import aiohttp
-import asyncio
 import re
 import time
 import json
 
-#* URLs for the API requests
+# * URLs for the API requests
 NEW_SESSION_URL = "https://{}/ws/new_session?callback=jQuery331005089254861332693_{}&partner=1&player=website-desktop&uid_ext_session={}&frontaddr={}&constraint=ETAT%%3C%%3E%%27AV%%27&constraint=ETAT<>'AV'"
 ANSWER_URL = "https://{}/ws/answer?callback=jQuery331005089254861332693_{}&session={}&signature={}&step={}&answer={}"
 BACK_URL = "https://{}/ws/cancel_answer?callback=jQuery331005089254861332693_{}&session={}&signature={}&step={}&answer=-1"
@@ -62,9 +61,12 @@ class Akinator():
 
         if start:
             self.session = int(resp["parameters"]["identification"]["session"])
-            self.signature = int(resp["parameters"]["identification"]["signature"])
-            self.question = str(resp["parameters"]["step_information"]["question"])
-            self.progression = float(resp["parameters"]["step_information"]["progression"])
+            self.signature = int(
+                resp["parameters"]["identification"]["signature"])
+            self.question = str(
+                resp["parameters"]["step_information"]["question"])
+            self.progression = float(
+                resp["parameters"]["step_information"]["progression"])
             self.step = int(resp["parameters"]["step_information"]["step"])
         else:
             self.question = str(resp["parameters"]["question"])
@@ -79,7 +81,8 @@ class Akinator():
     async def _get_session_info(self):
         """Get uid and frontaddr from akinator.com/game"""
 
-        info_regex = re.compile("var uid_ext_session = '(.*)'\\;\\n.*var frontaddr = '(.*)'\\;")
+        info_regex = re.compile(
+            "var uid_ext_session = '(.*)'\\;\\n.*var frontaddr = '(.*)'\\;")
 
         async with aiohttp.ClientSession() as session:
             async with session.get("https://en.akinator.com/game") as w:
@@ -165,7 +168,8 @@ class Akinator():
         If you're on the first question and you try to go back again, the CantGoBackAnyFurther exception will be raised
         """
         if self.step == 0:
-            raise CantGoBackAnyFurther("You were on the first question and couldn't go back any further")
+            raise CantGoBackAnyFurther(
+                "You were on the first question and couldn't go back any further")
 
         async with aiohttp.ClientSession() as session:
             async with session.get(BACK_URL.format(self.server, self.timestamp, self.session, self.signature, self.step)) as w:
@@ -179,26 +183,32 @@ class Akinator():
 
     async def win(self):
         """(coroutine)
-        Get Aki's first guess for who the person you're thinking of is based on your answers to the questions.
+        Get Aki's guesses for who the person you're thinking of is based on your answers to the questions.
 
-        This function defines 3 new variables:
-            - Akinator.name: The name of the person Aki guessed
-            - Akinator.description: A short description of that person
-            - Akinator.picture: A direct link to an image of the person
+        This function defines returns a list of dictionaries containing 3 variables:
+            - name: The name of the person Aki guessed
+            - description: A short description of that person
+            - picture: A direct link to an image of the person
+            - progression: The probability that this is the correct person
 
-        This function will also return a dictionary containing the above values plus some additional ones.
-
-        It's recommended that you call this function when Aki's progression is above 85%. You can get his current progression via "Akinator.progression"
+        It's recommended that you call this function when Aki's progression is above 80%. You can get his current progression via "Akinator.progression"
         """
         async with aiohttp.ClientSession() as session:
             async with session.get(WIN_URL.format(self.server, self.timestamp, self.session, self.signature, self.step)) as w:
                 resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
-            guess = resp["parameters"]["elements"][0]["element"]
-            self.name = guess["name"]
-            self.description = guess["description"]
-            self.picture = guess["absolute_picture_path"]
-            return guess
+            guesses = []
+            for guess in resp["parameters"]["elements"]:
+                guess = guess["element"]
+                guess_dict = {
+                    'name': guess['name'],
+                    'description': guess['description'],
+                    'picture': guess["absolute_picture_path"],
+                    'probability': float(guess['proba']) * 100
+                }
+                guesses.append(guess_dict)
+
+            return guesses
         else:
             return raise_connection_error(resp["completion"])
