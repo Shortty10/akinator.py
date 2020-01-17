@@ -182,7 +182,7 @@ class Akinator():
     def win(self):
         """Get Aki's guesses for who the person you're thinking of is based on your answers to the questions.
 
-        This function defines returns a list of dictionaries containing 3 variables:
+        This function returns a list of dictionaries containing 4 variables:
             - name: The name of the person Aki guessed
             - description: A short description of that person
             - picture: A direct link to an image of the person
