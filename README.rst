@@ -4,7 +4,7 @@ akinator.py
 
 **An API wrapper for the online game, Akinator, written in Python**
 
-.. image:: https://img.shields.io/badge/pypi-v2.0.3-blue.svg
+.. image:: https://img.shields.io/badge/pypi-v2.1.0-blue.svg
     :target: https://pypi.python.org/pypi/akinator.py/
 
 .. image:: https://img.shields.io/badge/python-%E2%89%A53.5.3-yellow.svg
