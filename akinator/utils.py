@@ -60,17 +60,17 @@ def get_region(lang=None):
             lang += "s"
 
     if lang is None or lang == "en" or lang == "english":
-        return "srv2.akinator.com:9162"
+        return "srv14.akinator.com:9281"
     elif lang == "en2" or lang == "english2":
         return "srv6.akinator.com:9126"
     elif lang == "en3" or lang == "english3":
         return "srv11.akinator.com:9152"
     elif lang == "en_animals" or lang == "english_animals":
-        return "srv2.akinator.com:9255"
+        return "srv2.akinator.com:9307"
     elif lang == "en_objects" or lang == "english_objects":
-        return "srv2.akinator.com:9265"
+        return "srv2.akinator.com:9308"
     elif lang == "ar" or lang == "arabic":
-        return "srv2.akinator.com:9155"
+        return "srv2.akinator.com:9304"
     elif lang == "cn" or lang == "chinese":
         return "srv11.akinator.com:9150"
     elif lang == "de" or lang == "german":
@@ -102,13 +102,13 @@ def get_region(lang=None):
     elif lang == "jp_animals" or lang == "japanese_animals":
         return "srv11.akinator.com:9263"
     elif lang == "kr" or lang == "korean":
-        return "srv2.akinator.com:9156"
+        return "srv2.akinator.com:9305"
     elif lang == "nl" or lang == "dutch":
         return "srv9.akinator.com:9215"
     elif lang == "pl" or lang == "polish":
         return "srv14.akinator.com:9282"
     elif lang == "pt" or lang == "portuguese":
-        return "srv2.akinator.com:9161"
+        return "srv11.akinator.com:9174"
     elif lang == "ru" or lang == "russian":
         return "srv12.akinator.com:9190"
     elif lang == "tr" or lang == "turkish":
