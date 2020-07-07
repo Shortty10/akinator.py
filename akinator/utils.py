@@ -52,7 +52,7 @@ def ans_to_id(ans):
 
 
 def get_region(lang=None):
-    """Returns an Aki server based on what language is input"""
+    """Returns an Aki URI and server based on what language is input"""
 
     if lang:
         lang = lang.lower().replace(" ", "")
@@ -60,59 +60,74 @@ def get_region(lang=None):
             lang += "s"
 
     if lang is None or lang == "en" or lang == "english":
-        return "srv14.akinator.com:9281"
-    elif lang == "en2" or lang == "english2":
-        return "srv6.akinator.com:9126"
-    elif lang == "en3" or lang == "english3":
-        return "srv11.akinator.com:9152"
+        return {"uri": "en.akinator.com",
+                "server": "srv13.akinator.com:9361"}
     elif lang == "en_animals" or lang == "english_animals":
-        return "srv2.akinator.com:9307"
+        return {"uri": "en.akinator.com",
+                "server": "srv2.akinator.com:9318"}
     elif lang == "en_objects" or lang == "english_objects":
-        return "srv2.akinator.com:9308"
+        return {"uri": "en.akinator.com",
+                "server": "srv2.akinator.com:9319"}
     elif lang == "ar" or lang == "arabic":
-        return "srv2.akinator.com:9304"
+        return {"uri": "ar.akinator.com",
+                "server": "srv2.akinator.com:9315"}
     elif lang == "cn" or lang == "chinese":
-        return "srv11.akinator.com:9150"
+        return {"uri": "cn.akinator.com",
+                "server": "srv11.akinator.com:9344"}
     elif lang == "de" or lang == "german":
-        return "srv14.akinator.com:9283"
+        return {"uri": "de.akinator.com",
+                "server": "srv14.akinator.com:9369"}
     elif lang == "de_animals" or lang == "german_animals":
-        return "srv14.akinator.com:9284"
+        return {"uri": "de.akinator.com",
+                "server": "srv14.akinator.com:9370"}
     elif lang == "es" or lang == "spanish":
-        return "srv6.akinator.com:9127"
-    elif lang == "es2" or lang == "spanish2":
-        return "srv11.akinator.com:9151"
+        return {"uri": "es.akinator.com",
+                "server": "srv6.akinator.com:9354"}
     elif lang == "es_animals" or lang == "spanish_animals":
-        return "srv13.akinator.com:9257"
+        return {"uri": "es.akinator.com",
+                "server": "srv13.akinator.com:9362"}
     elif lang == "fr" or lang == "french":
-        return "srv3.akinator.com:9217"
-    elif lang == "fr2" or lang == "french2":
-        return "srv12.akinator.com:9185"
+        return {"uri": "fr.akinator.com",
+                "server": "srv3.akinator.com:9331"}
     elif lang == "fr_animals" or lang == "french_animals":
-        return "srv3.akinator.com:9259"
+        return {"uri": "fr.akinator.com",
+                "server": "srv3.akinator.com:9329"}
     elif lang == "fr_objects" or lang == "french_objects":
-        return "srv3.akinator.com:9218"
+        return {"uri": "fr.akinator.com",
+                "server": "srv3.akinator.com:9330"}
     elif lang == "il" or lang == "hebrew":
-        return "srv12.akinator.com:9189"
+        return {"uri": "il.akinator.com",
+                "server": "srv12.akinator.com:9339"}
     elif lang == "it" or lang == "italian":
-        return "srv9.akinator.com:9214"
+        return {"uri": "it.akinator.com",
+                "server": "srv9.akinator.com:9380"}
     elif lang == "it_animals" or lang == "italian_animals":
-        return "srv9.akinator.com:9261"
+        return {"uri": "it.akinator.com",
+                "server": "srv9.akinator.com:9383"}
     elif lang == "jp" or lang == "japanese":
-        return "srv11.akinator.com:9172"
+        return {"uri": "jp.akinator.com",
+                "server": "srv11.akinator.com:9349"}
     elif lang == "jp_animals" or lang == "japanese_animals":
-        return "srv11.akinator.com:9263"
+        return {"uri": "jp.akinator.com",
+                "server": "srv11.akinator.com:9352"}
     elif lang == "kr" or lang == "korean":
-        return "srv2.akinator.com:9305"
+        return {"uri": "kr.akinator.com",
+                "server": "srv2.akinator.com:9316"}
     elif lang == "nl" or lang == "dutch":
-        return "srv9.akinator.com:9215"
+        return {"uri": "nl.akinator.com",
+                "server": "srv9.akinator.com:9381"}
     elif lang == "pl" or lang == "polish":
-        return "srv14.akinator.com:9282"
+        return {"uri": "pl.akinator.com",
+                "server": "srv14.akinator.com:9143"}
     elif lang == "pt" or lang == "portuguese":
-        return "srv11.akinator.com:9174"
+        return {"uri": "pt.akinator.com",
+                "server": "srv11.akinator.com:9350"}
     elif lang == "ru" or lang == "russian":
-        return "srv12.akinator.com:9190"
+        return {"uri": "ru.akinator.com",
+                "server": "srv12.akinator.com:9340"}
     elif lang == "tr" or lang == "turkish":
-        return "srv3.akinator.com:9211"
+        return {"uri": "tr.akinator.com",
+                "server": "srv3.akinator.com:9332"}
     else:
         raise InvalidLanguageError("You put \"{}\", which is an invalid language.".format(lang))
 
@@ -126,7 +141,7 @@ def raise_connection_error(response):
         raise AkiTechnicalError("Akinator's servers have had a technical error. Try again later or use a different language")
     elif response == "KO - TIMEOUT":
         raise AkiTimedOut("Your Akinator session has timed out")
-    elif response == "WARN - NO QUESTION":
+    elif response == "KO - ELEM LIST IS EMPTY" or response == "WARN - NO QUESTION":
         raise AkiNoQuestions("\"Akinator.step\" reached 80. No more questions")
     else:
         raise AkiConnectionFailure("An unknown error has occured. Server response: {}".format(response))
