@@ -27,7 +27,7 @@ setup(
         "Tracker": "https://github.com/NinjaSnail1080/akinator.py/issues",
         "Say Thanks!": "https://saythanks.io/to/NinjaSnail1080"
     },
-    license="MIT",
+    license="MIT License",
     description="An API wrapper for the online game, Akinator, written in Python",
     long_description=READ_ME,
     long_description_content_type="text/x-rst",
@@ -40,6 +40,7 @@ setup(
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "Natural Language :: English",
