@@ -4,13 +4,7 @@ import akinator
 
 aki = akinator.Akinator()
 
-try:
-    q = aki.start_game()
-except (akinator.AkiServerDown, akinator.AkiTechnicalError):
-    try:
-        q = aki.start_game("en2")
-    except (akinator.AkiServerDown, akinator.AkiTechnicalError):
-        q = aki.start_game("en3")
+q = aki.start_game()
 
 while aki.progression <= 80:
     a = input(q + "\n\t")
