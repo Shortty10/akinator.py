@@ -4,7 +4,7 @@ akinator.py
 
 **An API wrapper for the online game, Akinator, written in Python**
 
-.. image:: https://img.shields.io/badge/pypi-v2.0.3-blue.svg
+.. image:: https://img.shields.io/badge/pypi-v3.0.0-blue.svg
     :target: https://pypi.python.org/pypi/akinator.py/
 
 .. image:: https://img.shields.io/badge/python-%E2%89%A53.5.3-yellow.svg
@@ -61,13 +61,7 @@ Here's a quick little example of the library being used to make a simple, text-b
 
   aki = akinator.Akinator()
 
-  try:
-      q = aki.start_game()
-  except (akinator.AkiServerDown, akinator.AkiTechnicalError):
-      try:
-          q = aki.start_game("en2")
-      except (akinator.AkiServerDown, akinator.AkiTechnicalError):
-          q = aki.start_game("en3")
+  q = aki.start_game()
 
   while aki.progression <= 80:
       a = input(q + "\n\t")
@@ -97,13 +91,7 @@ Here's the same game as above, but using the async version of the library instea
   aki = Akinator()
 
   async def main():
-      try:
-          q = await aki.start_game()
-      except (akinator.AkiServerDown, akinator.AkiTechnicalError):
-          try:
-              q = await aki.start_game("en2")
-          except (akinator.AkiServerDown, akinator.AkiTechnicalError):
-              q = await aki.start_game("en3")
+      q = await aki.start_game()
 
       while aki.progression <= 80:
           a = input(q + "\n\t")
@@ -163,8 +151,6 @@ start_game(*language=None*)
   The ``language`` parameter can be left as None for English, the default language, or it can be set to one of the following (case-insensitive):
 
   - ``en``: English (default)
-  - ``en2``: Second English server. Use if the main one is down
-  - ``en3``: Third English server. Use if the other two are down
   - ``en_animals``: English server for guessing animals. Here, Akinator will attempt to guess the animal you're thinking instead of a character
   - ``en_objects``: English server for guessing objects. Here, Akinator will attempt to guess the object you're thinking instead of a character
   - ``ar``: Arabic
@@ -172,10 +158,8 @@ start_game(*language=None*)
   - ``de``: German
   - ``de_animals``: German server for guessing animals
   - ``es``: Spanish
-  - ``es2``: Second Spanish server. Use if the main one is down
   - ``es_animals``: Spanish server for guessing animals
   - ``fr``: French
-  - ``fr2``: Second French server. Use if the main one is down
   - ``fr_animals``: French server for guessing animals
   - ``fr_objects``: French server for guessing objects
   - ``il``: Hebrew
@@ -225,19 +209,20 @@ win()
 
   .. code-block:: javascript
 
-    {'absolute_picture_path': 'https://photos.clarinea.fr/BL_15_en/600/partenaire/y/2367495__1053312468.jpg',
-     'corrupt': '0',
-     'description': 'Entrepreneur',
-     'flag_photo': 0,
-     'id': '52848',
-     'id_base': '2367495',
-     'name': 'Elon Musk',
-     'picture_path': 'partenaire/y/2367495__1053312468.jpg',
-     'proba': '0.804791',
-     'pseudo': 'X',
-     'ranking': '605',
-     'relative': '0',
-     'valide_contrainte': '1'}
+    {'absolute_picture_path': 'https://photos.clarinea.fr/BL_25_en/600/partenaire/z/2367495__125764488.jpg',
+    'award_id': '-1',
+    'corrupt': '0',
+    'description': 'Entrepreneur',
+    'flag_photo': 0,
+    'id': '50029',
+    'id_base': '2367495',
+    'name': 'Elon Musk',
+    'picture_path': 'partenaire/z/2367495__125764488.jpg',
+    'proba': '0.867041',
+    'pseudo': 'X',
+    'ranking': '2678',
+    'relative': '0',
+    'valide_contrainte': '1'}
 
   It's recommended that you call this function when Aki's progression is above 80%. You can get his current progression via ``Akinator.progression``
 
@@ -245,6 +230,9 @@ Variables
 =========
 
 These variables contain important information about the Akinator game. Please don't change any of these values in your program. It'll definitely break things.
+
+uri
+  The uri this Akinator game is using. Depends on what you put for the language param in ``Akinator.start_game()`` (e.g., ``"en.akinator.com"``, ``"es.akinator.com"``, etc.)
 
 server
   The server this Akinator game is using. Depends on what you put for the language param in ``Akinator.start_game()`` (e.g., ``"srv2.akinator.com:9162"``, ``"srv6.akinator.com:9127"``, etc.)
@@ -273,7 +261,7 @@ progression
 step
   An integer that tells you what question Akinator is on. This will be 0 on the first question, 1 on the second question, 2 on the third, 3 on the fourth, etc.
 
-The first 6 variables—``server``, ``session``, ``signature``, ``uid``, ``frontaddr``, and ``timestamp``—will remain unchanged, but the last 3—``question``, ``progression``, and ``step``—will change as you go on.
+The first 7 variables—``uri``, ``server``, ``session``, ``signature``, ``uid``, ``frontaddr``, and ``timestamp``—will remain unchanged, but the last 3—``question``, ``progression``, and ``step``—will change as you go on.
 
 **Note**: There are 3 more variables that will be defined when the function ``Akinator.win()`` is called for the first time. These variables are documented above, underneath that function in the **Functions** section
 
@@ -309,7 +297,7 @@ CantGoBackAnyFurther:
 """""""""""""""""
 
 .. image:: https://img.shields.io/badge/Enjoy%20this%20library%3F-Say%20Thanks!-brightgreen.svg
-    :target: https://saythanks.io/to/NinjaSnail1080
+    :target: https://saythanks.io/to/innuganti.ashwin%40gmail.com
 
 .. image:: https://img.shields.io/badge/Having%20problems%3F-Issues%20Tracker-blueviolet.svg
     :target: https://github.com/NinjaSnail1080/akinator.py/issues
