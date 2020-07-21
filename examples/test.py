@@ -17,7 +17,7 @@ while aki.progression <= 80:
         q = aki.answer(a)
 aki.win()
 
-correct = input(f"It's {aki.name} ({aki.description})! Was I correct?\n{aki.picture}\n\t")
+correct = input(f"It's {aki.first_guess['name']} ({aki.first_guess['description']})! Was I correct?\n{aki.first_guess['absolute_picture_path']}\n\t")
 if correct.lower() == "yes" or correct.lower() == "y":
     print("Yay\n")
 else:

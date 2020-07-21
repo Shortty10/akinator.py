@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from .utils import ans_to_id, get_region, raise_connection_error
+from .utils import ans_to_id, get_lang_and_theme, raise_connection_error
 from .exceptions import CantGoBackAnyFurther
 import re
 import time
@@ -33,10 +33,10 @@ except ImportError:
     pass
 
 # * URLs for the API requests
-NEW_SESSION_URL = "https://{}/new_session?callback=jQuery331023608747682107778_{}&urlApiWs=https://{}/ws&partner=1&player=website-desktop&uid_ext_session={}&frontaddr={}&constraint=ETAT%%3C%%3E%%27AV%%27&constraint=ETAT<>'AV'"
-ANSWER_URL = "https://{}/answer_api?callback=jQuery331023608747682107778_{}&urlApiWs=https://{}/ws&session={}&signature={}&step={}&answer={}&frontaddr={}"
-BACK_URL = "https://{}/ws/cancel_answer?callback=jQuery331023608747682107778_{}&session={}&signature={}&step={}&answer=-1"
-WIN_URL = "https://{}/ws/list?callback=jQuery331023608747682107778_{}&session={}&signature={}&step={}"
+NEW_SESSION_URL = "https://{}/new_session?callback=jQuery331023608747682107778_{}&urlApiWs={}&partner=1&childMod={}&player=website-desktop&uid_ext_session={}&frontaddr={}&constraint=ETAT<>'AV'&soft_constraint={}&question_filter={}"
+ANSWER_URL = "https://{}/answer_api?callback=jQuery331023608747682107778_{}&urlApiWs={}&childMod={}&session={}&signature={}&step={}&answer={}&frontaddr={}&question_filter={}"
+BACK_URL = "{}/cancel_answer?callback=jQuery331023608747682107778_{}&childMod={}&session={}&signature={}&step={}&answer=-1&question_filter={}"
+WIN_URL = "{}/list?callback=jQuery331023608747682107778_{}&childMod={}&session={}&signature={}&step={}"
 
 # * HTTP headers to use for the requests
 HEADERS = {
@@ -61,11 +61,16 @@ class Akinator():
         self.signature = None
         self.uid = None
         self.frontaddr = None
+        self.child_mode = None
+        self.question_filter = None
         self.timestamp = None
 
         self.question = None
         self.progression = None
         self.step = None
+
+        self.first_guess = None
+        self.guesses = None
 
     def _update(self, resp, start=False):
         """Update class variables"""
@@ -99,7 +104,25 @@ class Akinator():
         match = info_regex.search(r.text)
         self.uid, self.frontaddr = match.groups()[0], match.groups()[1]
 
-    def start_game(self, language=None):
+    def _auto_get_region(self, lang, theme):
+        """Automatically get the uri and server from akinator.com for the specified language and theme"""
+
+        server_regex = re.compile(
+            "[{\"translated_theme_name\":\"[\s\S]*\",\"urlWs\":\"https:\\\/\\\/srv[0-9]+\.akinator\.com:[0-9]+\\\/ws\",\"subject_id\":\"[0-9]+\"}]")
+        uri = lang + ".akinator.com"
+        r = requests.get("https://" + uri)
+
+        match = server_regex.search(r.text)
+        parsed = json.loads(match.group().split("'arrUrlThemesToPlay', ")[-1])
+
+        if theme == "c":
+            return {"uri": uri, "server": next((i for i in parsed if i["subject_id"] == "1"), None)["urlWs"]}
+        elif theme == "a":
+            return {"uri": uri, "server": next((i for i in parsed if i["subject_id"] == "14"), None)["urlWs"]}
+        elif theme == "o":
+            return {"uri": uri, "server": next((i for i in parsed if i["subject_id"] == "2"), None)["urlWs"]}
+
+    def start_game(self, language=None, child_mode=False):
         """Start an Akinator game. Run this function first before the others. Returns a string containing the first question
 
         The "language" parameter can be left as None for English, the default language, or it can be set to one of the following (case-insensitive):
@@ -131,14 +154,22 @@ class Akinator():
             - "ru": Russian
             - "tr": Turkish
         You can also put the name of the language spelled out, like "spanish", "korean", "french_animals", etc.
+
+        The "child_mode" parameter is False by default. If it's set to True, then Akinator won't ask questions about things that are NSFW
         """
         self.timestamp = time.time()
-        self.uri = get_region(language)["uri"]
-        self.server = get_region(language)["server"]
+        region_info = self._auto_get_region(get_lang_and_theme(
+            language)["lang"], get_lang_and_theme(language)["theme"])
+        self.uri, self.server = region_info["uri"], region_info["server"]
+
+        self.child_mode = child_mode
+        soft_constraint = "ETAT%3D%27EN%27" if self.child_mode else ""
+        self.question_filter = "cat%3D1" if self.child_mode else ""
+
         self._get_session_info()
 
-        r = requests.get(NEW_SESSION_URL.format(
-            self.uri, self.timestamp, self.server, self.uid, self.frontaddr), headers=HEADERS)
+        r = requests.get(NEW_SESSION_URL.format(self.uri, self.timestamp, self.server, str(
+            self.child_mode).lower(), self.uid, self.frontaddr, soft_constraint, self.question_filter), headers=HEADERS)
         resp = self._parse_response(r.text)
 
         if resp["completion"] == "OK":
@@ -159,8 +190,8 @@ class Akinator():
         """
         ans = ans_to_id(ans)
 
-        r = requests.get(ANSWER_URL.format(self.uri, self.timestamp, self.server,
-                                           self.session, self.signature, self.step, ans, self.frontaddr), headers=HEADERS)
+        r = requests.get(ANSWER_URL.format(self.uri, self.timestamp, self.server, str(self.child_mode).lower(
+        ), self.session, self.signature, self.step, ans, self.frontaddr, self.question_filter), headers=HEADERS)
         resp = self._parse_response(r.text)
 
         if resp["completion"] == "OK":
@@ -178,8 +209,8 @@ class Akinator():
             raise CantGoBackAnyFurther(
                 "You were on the first question and couldn't go back any further")
 
-        r = requests.get(BACK_URL.format(self.server, self.timestamp,
-                                         self.session, self.signature, self.step), headers=HEADERS)
+        r = requests.get(BACK_URL.format(self.server, self.timestamp, str(self.child_mode).lower(
+        ), self.session, self.signature, self.step, self.question_filter), headers=HEADERS)
         resp = self._parse_response(r.text)
 
         if resp["completion"] == "OK":
@@ -197,7 +228,7 @@ class Akinator():
             - picture: A direct link to an image of the person
             - progression: The probability that this is the correct person
 
-        It's recommended that you call this function when Aki's progression is above 80%. You can get his current progression via "Akinator.progression"
+        It's recommended that you call this function when Aki's progression is above 85%, which is when he will have most likely narrowed it down to just one choice. You can get his current progression via "Akinator.progression"
         """
         r = requests.get(WIN_URL.format(self.server, self.timestamp,
                                         self.session, self.signature, self.step), headers=HEADERS)

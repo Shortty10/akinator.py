@@ -24,6 +24,9 @@ SOFTWARE.
 
 from .exceptions import InvalidAnswerError, InvalidLanguageError, AkiConnectionFailure, AkiTimedOut, AkiNoQuestions, AkiServerDown, AkiTechnicalError
 
+import re
+import json
+
 
 def ans_to_id(ans):
     """Convert an input answer string into an Answer ID for Akinator"""
@@ -51,83 +54,55 @@ def ans_to_id(ans):
         """.format(ans))
 
 
-def get_region(lang=None):
-    """Returns an Aki URI and server based on what language is input"""
-
-    if lang:
-        lang = lang.lower().replace(" ", "")
-        if lang.endswith(("animal", "object")):
-            lang += "s"
+def get_lang_and_theme(lang=None):
+    """Returns the language code and theme based on what is input"""
 
     if lang is None or lang == "en" or lang == "english":
-        return {"uri": "en.akinator.com",
-                "server": "srv13.akinator.com:9361"}
+        return {"lang": "en", "theme": "c"}
     elif lang == "en_animals" or lang == "english_animals":
-        return {"uri": "en.akinator.com",
-                "server": "srv2.akinator.com:9318"}
+        return {"lang": "en", "theme": "a"}
     elif lang == "en_objects" or lang == "english_objects":
-        return {"uri": "en.akinator.com",
-                "server": "srv2.akinator.com:9319"}
+        return {"lang": "en", "theme": "o"}
     elif lang == "ar" or lang == "arabic":
-        return {"uri": "ar.akinator.com",
-                "server": "srv2.akinator.com:9315"}
+        return {"lang": "ar", "theme": "c"}
     elif lang == "cn" or lang == "chinese":
-        return {"uri": "cn.akinator.com",
-                "server": "srv11.akinator.com:9344"}
+        return {"lang": "cn", "theme": "c"}
     elif lang == "de" or lang == "german":
-        return {"uri": "de.akinator.com",
-                "server": "srv14.akinator.com:9369"}
+        return {"lang": "de", "theme": "c"}
     elif lang == "de_animals" or lang == "german_animals":
-        return {"uri": "de.akinator.com",
-                "server": "srv14.akinator.com:9370"}
+        return {"lang": "de", "theme": "a"}
     elif lang == "es" or lang == "spanish":
-        return {"uri": "es.akinator.com",
-                "server": "srv6.akinator.com:9354"}
+        return {"lang": "es", "theme": "c"}
     elif lang == "es_animals" or lang == "spanish_animals":
-        return {"uri": "es.akinator.com",
-                "server": "srv13.akinator.com:9362"}
+        return {"lang": "es", "theme": "a"}
     elif lang == "fr" or lang == "french":
-        return {"uri": "fr.akinator.com",
-                "server": "srv3.akinator.com:9331"}
+        return {"lang": "fr", "theme": "c"}
     elif lang == "fr_animals" or lang == "french_animals":
-        return {"uri": "fr.akinator.com",
-                "server": "srv3.akinator.com:9329"}
+        return {"lang": "fr", "theme": "a"}
     elif lang == "fr_objects" or lang == "french_objects":
-        return {"uri": "fr.akinator.com",
-                "server": "srv3.akinator.com:9330"}
+        return {"lang": "fr", "theme": "o"}
     elif lang == "il" or lang == "hebrew":
-        return {"uri": "il.akinator.com",
-                "server": "srv12.akinator.com:9339"}
+        return {"lang": "il", "theme": "c"}
     elif lang == "it" or lang == "italian":
-        return {"uri": "it.akinator.com",
-                "server": "srv9.akinator.com:9380"}
+        return {"lang": "it", "theme": "c"}
     elif lang == "it_animals" or lang == "italian_animals":
-        return {"uri": "it.akinator.com",
-                "server": "srv9.akinator.com:9383"}
+        return {"lang": "it", "theme": "a"}
     elif lang == "jp" or lang == "japanese":
-        return {"uri": "jp.akinator.com",
-                "server": "srv11.akinator.com:9349"}
+        return {"lang": "jp", "theme": "c"}
     elif lang == "jp_animals" or lang == "japanese_animals":
-        return {"uri": "jp.akinator.com",
-                "server": "srv11.akinator.com:9352"}
+        return {"lang": "jp", "theme": "a"}
     elif lang == "kr" or lang == "korean":
-        return {"uri": "kr.akinator.com",
-                "server": "srv2.akinator.com:9316"}
+        return {"lang": "kr", "theme": "c"}
     elif lang == "nl" or lang == "dutch":
-        return {"uri": "nl.akinator.com",
-                "server": "srv9.akinator.com:9381"}
+        return {"lang": "nl", "theme": "c"}
     elif lang == "pl" or lang == "polish":
-        return {"uri": "pl.akinator.com",
-                "server": "srv14.akinator.com:9143"}
+        return {"lang": "pl", "theme": "c"}
     elif lang == "pt" or lang == "portuguese":
-        return {"uri": "pt.akinator.com",
-                "server": "srv11.akinator.com:9350"}
+        return {"lang": "pt", "theme": "c"}
     elif lang == "ru" or lang == "russian":
-        return {"uri": "ru.akinator.com",
-                "server": "srv12.akinator.com:9340"}
+        return {"lang": "ru", "theme": "c"}
     elif lang == "tr" or lang == "turkish":
-        return {"uri": "tr.akinator.com",
-                "server": "srv3.akinator.com:9332"}
+        return {"lang": "tr", "theme": "c"}
     else:
         raise InvalidLanguageError("You put \"{}\", which is an invalid language.".format(lang))
 

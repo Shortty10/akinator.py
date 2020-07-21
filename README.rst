@@ -4,7 +4,7 @@ akinator.py
 
 **An API wrapper for the online game, Akinator, written in Python**
 
-.. image:: https://img.shields.io/badge/pypi-v3.0.0-blue.svg
+.. image:: https://img.shields.io/badge/pypi-v4.0.0-blue.svg
     :target: https://pypi.python.org/pypi/akinator.py/
 
 .. image:: https://img.shields.io/badge/python-%E2%89%A53.5.3-yellow.svg
@@ -74,7 +74,7 @@ Here's a quick little example of the library being used to make a simple, text-b
           q = aki.answer(a)
   aki.win()
 
-  correct = input(f"It's {aki.name} ({aki.description})! Was I correct?\n{aki.picture}\n\t")
+  correct = input(f"It's {aki.first_guess['name']} ({aki.first_guess['description']})! Was I correct?\n{aki.first_guess['absolute_picture_path']}\n\t")
   if correct.lower() == "yes" or correct.lower() == "y":
       print("Yay\n")
   else:
@@ -104,7 +104,7 @@ Here's the same game as above, but using the async version of the library instea
               q = await aki.answer(a)
       await aki.win()
 
-      correct = input(f"It's {aki.name} ({aki.description})! Was I correct?\n{aki.picture}\n\t")
+      correct = input(f"It's {aki.first_guess['name']} ({aki.first_guess['description']})! Was I correct?\n{aki.first_guess['absolute_picture_path']}\n\t")
       if correct.lower() == "yes" or correct.lower() == "y":
           print("Yay\n")
       else:
@@ -145,7 +145,7 @@ Functions
 
 **Note**: In the async version, all the below functions are coroutines and must be awaited
 
-start_game(*language=None*)
+start_game(*language=None, child_mode=False*)
   Start an Akinator game. Run this function first before the others. Returns a string containing the first question
 
   The ``language`` parameter can be left as None for English, the default language, or it can be set to one of the following (case-insensitive):
@@ -174,9 +174,9 @@ start_game(*language=None*)
   - ``ru``: Russian
   - ``tr``: Turkish
 
-  You can also put the name of the language spelled out, like ``spanish``, ``korean``, ``french_animals``, etc.
+  You can also put the name of the language spelled out, like ``spanish``, ``korean``, ``french_animals``, etc. If you put something else entirely, then then the ``InvalidLanguageError`` exception will be raised
 
-  If you put something else entirely, then then the ``InvalidLanguageError`` exception will be raised
+  The ``child_mode`` parameter is False by default. If it's set to True, then Akinator won't ask questions about things that are NSFW
 
 answer(*ans*)
   Answer the current question, which you can find with ``Akinator.question``. Returns a string containing the next question
@@ -197,15 +197,10 @@ back()
   If you're on the first question and you try to go back, the ``CantGoBackAnyFurther`` exception will be raised
 
 win()
-  Get Aki's first guess for who the character you're thinking of is based on your answers to the questions so far.
+  Get Aki's guesses for who the person you're thinking of is based on your answers to the questions so far
 
-  This function defines 3 new class variables:
-
-  - ``name``: The name of the character Aki guessed
-  - ``description``: A short description of that character
-  - ``picture``: A direct link to an image of the character
-
-  This function will also return a dictionary containing the above values plus some additional ones. Here's an example of what the dict looks like:
+  This function defines and returns the variable ``Akinator.first_guess``, a dictionary describing his first choice for who you're thinking about. The three most important values in the dict are ``name`` (character's name), ``description`` (description of character), and ``absolute_picture_path`` (direct link to image of character)
+  Here's an example of what the dict looks like:
 
   .. code-block:: javascript
 
@@ -214,15 +209,17 @@ win()
     'corrupt': '0',
     'description': 'Entrepreneur',
     'flag_photo': 0,
-    'id': '50029',
+    'id': '50021',
     'id_base': '2367495',
     'name': 'Elon Musk',
     'picture_path': 'partenaire/z/2367495__125764488.jpg',
-    'proba': '0.867041',
+    'proba': '0.901528',
     'pseudo': 'X',
-    'ranking': '2678',
+    'ranking': '457',
     'relative': '0',
     'valide_contrainte': '1'}
+
+  This function also defines ``Akinator.guesses``, which is a list of dictionaries containing his choices in order from most likely to least likely
 
   It's recommended that you call this function when Aki's progression is above 80%. You can get his current progression via ``Akinator.progression``
 
@@ -232,10 +229,10 @@ Variables
 These variables contain important information about the Akinator game. Please don't change any of these values in your program. It'll definitely break things.
 
 uri
-  The uri this Akinator game is using. Depends on what you put for the language param in ``Akinator.start_game()`` (e.g., ``"en.akinator.com"``, ``"es.akinator.com"``, etc.)
+  The uri this Akinator game is using. Depends on what you put for the language param in ``Akinator.start_game()`` (e.g., ``"en.akinator.com"``, ``"fr.akinator.com"``, etc.)
 
 server
-  The server this Akinator game is using. Depends on what you put for the language param in ``Akinator.start_game()`` (e.g., ``"srv2.akinator.com:9162"``, ``"srv6.akinator.com:9127"``, etc.)
+  The server this Akinator game is using. Depends on what you put for the language param in ``Akinator.start_game()`` (e.g., ``"https://srv2.akinator.com:9162"``, ``"https://srv6.akinator.com:9127"``, etc.)
 
 session
   A number, usually in between 0 and 100, that represents the game's session
@@ -249,6 +246,9 @@ uid
 frontaddr
   An IP address encoded in Base64; also for authentication purposes
 
+child_mode
+  A boolean that matches the child_mode param in ``Akinator.start_game()``
+
 timestamp
   A POSIX timestamp for when ``Akinator.start_game()`` was called
 
@@ -256,14 +256,18 @@ question
   The current question that Akinator is asking the user. Examples of questions asked by Aki include: ``Is your character's gender female?``, ``Is your character more than 40 years old?``, ``Does your character create music?``, ``Is your character real?``, ``Is your character from a TV series?``, etc.
 
 progression
-  A floating point number that represents a percentage showing how close Aki thinks he is to guessing your character. I recommend keeping track of this value and calling ``Akinator.win()`` when it's above 80 or 90. In most cases, this is about when Aki will have it narrowed down to one choice, which will hopefully be the correct one.
+  A floating point number that represents a percentage showing how close Aki thinks he is to guessing your character. I recommend keeping track of this value and calling ``Akinator.win()`` when it's above 80 or 90. In most cases, this is about when Aki will have it narrowed down to one choice, which will hopefully be the correct one
 
 step
   An integer that tells you what question Akinator is on. This will be 0 on the first question, 1 on the second question, 2 on the third, 3 on the fourth, etc.
 
-The first 7 variables—``uri``, ``server``, ``session``, ``signature``, ``uid``, ``frontaddr``, and ``timestamp``—will remain unchanged, but the last 3—``question``, ``progression``, and ``step``—will change as you go on.
+first_guess
+  A dict that describes Akinator's first guess for who your character is. An example of what this dict will look like can be found in the documentation for the ``Akinator.win()`` function above. This variable will only be defined once that function is called
 
-**Note**: There are 3 more variables that will be defined when the function ``Akinator.win()`` is called for the first time. These variables are documented above, underneath that function in the **Functions** section
+guesses
+  A list of dicts containing his choices in order from most likely to least likely. Each dict will look the same as ``first_guess``. This list will also contain ``first_guess`` as the first entry. This variable will only be defined once ``Akinator.win()`` is called
+
+The first 8 variables—``uri``, ``server``, ``session``, ``signature``, ``uid``, ``frontaddr``, ``child_mode``, and ``timestamp``—will remain unchanged, but the next 3—``question``, ``progression``, and ``step``—will change as you go on. The final two—``first_guess`` and ``guesses``— will only be defined when ``Akinator.win()`` is called.
 
 Exceptions
 ==========
