@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from ..utils import ans_to_id, get_region, raise_connection_error
+from ..utils import ans_to_id, get_lang_and_theme, raise_connection_error
 from ..exceptions import CantGoBackAnyFurther
 import aiohttp
 import asyncio
@@ -31,10 +31,10 @@ import time
 import json
 
 #* URLs for the API requests
-NEW_SESSION_URL = "https://{}/new_session?callback=jQuery331023608747682107778_{}&urlApiWs=https://{}/ws&partner=1&player=website-desktop&uid_ext_session={}&frontaddr={}&constraint=ETAT%%3C%%3E%%27AV%%27&constraint=ETAT<>'AV'"
-ANSWER_URL = "https://{}/answer_api?callback=jQuery331023608747682107778_{}&urlApiWs=https://{}/ws&session={}&signature={}&step={}&answer={}&frontaddr={}"
-BACK_URL = "https://{}/ws/cancel_answer?callback=jQuery331023608747682107778_{}&session={}&signature={}&step={}&answer=-1"
-WIN_URL = "https://{}/ws/list?callback=jQuery331023608747682107778_{}&session={}&signature={}&step={}"
+NEW_SESSION_URL = "https://{}/new_session?callback=jQuery331023608747682107778_{}&urlApiWs={}&partner=1&childMod={}&player=website-desktop&uid_ext_session={}&frontaddr={}&constraint=ETAT<>'AV'&soft_constraint={}&question_filter={}"
+ANSWER_URL = "https://{}/answer_api?callback=jQuery331023608747682107778_{}&urlApiWs={}&childMod={}&session={}&signature={}&step={}&answer={}&frontaddr={}&question_filter={}"
+BACK_URL = "{}/cancel_answer?callback=jQuery331023608747682107778_{}&childMod={}&session={}&signature={}&step={}&answer=-1&question_filter={}"
+WIN_URL = "{}/list?callback=jQuery331023608747682107778_{}&childMod={}&session={}&signature={}&step={}"
 
 #* HTTP headers to use for the requests
 HEADERS = {
@@ -58,11 +58,16 @@ class Akinator():
         self.signature = None
         self.uid = None
         self.frontaddr = None
+        self.child_mode = None
+        self.question_filter = None
         self.timestamp = None
 
         self.question = None
         self.progression = None
         self.step = None
+
+        self.first_guess = None
+        self.guesses = None
 
     def _update(self, resp, start=False):
         """Update class variables"""
@@ -94,7 +99,27 @@ class Akinator():
 
         self.uid, self.frontaddr = match.groups()[0], match.groups()[1]
 
-    async def start_game(self, language=None):
+    async def _auto_get_region(self, lang, theme):
+        """Automatically get the uri and server from akinator.com for the specified language and theme"""
+
+        server_regex = re.compile(
+            "[{\"translated_theme_name\":\"[\s\S]*\",\"urlWs\":\"https:\\\/\\\/srv[0-9]+\.akinator\.com:[0-9]+\\\/ws\",\"subject_id\":\"[0-9]+\"}]")
+        uri = lang + ".akinator.com"
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://" + uri) as w:
+                match = server_regex.search(await w.text())
+
+        parsed = json.loads(match.group().split("'arrUrlThemesToPlay', ")[-1])
+
+        if theme == "c":
+            return {"uri": uri, "server": next((i for i in parsed if i["subject_id"] == "1"), None)["urlWs"]}
+        elif theme == "a":
+            return {"uri": uri, "server": next((i for i in parsed if i["subject_id"] == "14"), None)["urlWs"]}
+        elif theme == "o":
+            return {"uri": uri, "server": next((i for i in parsed if i["subject_id"] == "2"), None)["urlWs"]}
+
+    async def start_game(self, language=None, child_mode=False):
         """(coroutine)
         Start an Akinator game. Run this function first before the others. Returns a string containing the first question
 
@@ -129,12 +154,17 @@ class Akinator():
         You can also put the name of the language spelled out, like "spanish", "korean", "french_animals", etc.
         """
         self.timestamp = time.time()
-        self.uri = get_region(language)["uri"]
-        self.server = get_region(language)["server"]
+        region_info = await self._auto_get_region(get_lang_and_theme(language)["lang"], get_lang_and_theme(language)["theme"])
+        self.uri, self.server = region_info["uri"], region_info["server"]
+
+        self.child_mode = child_mode
+        soft_constraint = "ETAT%3D%27EN%27" if self.child_mode else ""
+        self.question_filter = "cat%3D1" if self.child_mode else ""
+
         await self._get_session_info()
 
         async with aiohttp.ClientSession() as session:
-            async with session.get(NEW_SESSION_URL.format(self.uri, self.timestamp, self.server, self.uid, self.frontaddr), headers=HEADERS) as w:
+            async with session.get(NEW_SESSION_URL.format(self.uri, self.timestamp, self.server, str(self.child_mode).lower(), self.uid, self.frontaddr, soft_constraint, self.question_filter), headers=HEADERS) as w:
                 resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
@@ -157,7 +187,7 @@ class Akinator():
         ans = ans_to_id(ans)
 
         async with aiohttp.ClientSession() as session:
-            async with session.get(ANSWER_URL.format(self.uri, self.timestamp, self.server, self.session, self.signature, self.step, ans, self.frontaddr), headers=HEADERS) as w:
+            async with session.get(ANSWER_URL.format(self.uri, self.timestamp, self.server, str(self.child_mode).lower(), self.session, self.signature, self.step, ans, self.frontaddr, self.question_filter), headers=HEADERS) as w:
                 resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
@@ -176,7 +206,7 @@ class Akinator():
             raise CantGoBackAnyFurther("You were on the first question and couldn't go back any further")
 
         async with aiohttp.ClientSession() as session:
-            async with session.get(BACK_URL.format(self.server, self.timestamp, self.session, self.signature, self.step), headers=HEADERS) as w:
+            async with session.get(BACK_URL.format(self.server, self.timestamp, str(self.child_mode).lower(), self.session, self.signature, self.step, self.question_filter), headers=HEADERS) as w:
                 resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
@@ -187,26 +217,23 @@ class Akinator():
 
     async def win(self):
         """(coroutine)
-        Get Aki's first guess for who the person you're thinking of is based on your answers to the questions.
+        Get Aki's guesses for who the person you're thinking of is based on your answers to the questions so far
 
-        This function defines 3 new variables:
-            - Akinator.name: The name of the person Aki guessed
-            - Akinator.description: A short description of that person
-            - Akinator.picture: A direct link to an image of the person
+        Defines and returns the variable "Akinator.first_guess", a dictionary describing his first choice for who you're thinking about. The three most important values in the dict are "name" (character's name), "description" (description of character), and "absolute_picture_path" (direct link to image of character)
 
-        This function will also return a dictionary containing the above values plus some additional ones.
+        This function also defines "Akinator.guesses", which is a list of dictionaries containing his choices in order from most likely to least likely
 
-        It's recommended that you call this function when Aki's progression is above 85%. You can get his current progression via "Akinator.progression"
+        It's recommended that you call this function when Aki's progression is above 85%, which is when he will have most likely narrowed it down to just one choice. You can get his current progression via "Akinator.progression"
         """
         async with aiohttp.ClientSession() as session:
-            async with session.get(WIN_URL.format(self.server, self.timestamp, self.session, self.signature, self.step), headers=HEADERS) as w:
+            async with session.get(WIN_URL.format(self.server, self.timestamp, str(self.child_mode).lower(), self.session, self.signature, self.step), headers=HEADERS) as w:
                 resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
-            guess = resp["parameters"]["elements"][0]["element"]
-            self.name = guess["name"]
-            self.description = guess["description"]
-            self.picture = guess["absolute_picture_path"]
-            return guess
+            self.first_guess = resp["parameters"]["elements"][0]["element"]
+            self.guesses = [g["element"] for g in resp["parameters"]["elements"]]
+            import pprint
+            pprint.pprint(self.first_guess)
+            return self.first_guess
         else:
             return raise_connection_error(resp["completion"])
