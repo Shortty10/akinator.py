@@ -232,8 +232,6 @@ class Akinator():
         if resp["completion"] == "OK":
             self.first_guess = resp["parameters"]["elements"][0]["element"]
             self.guesses = [g["element"] for g in resp["parameters"]["elements"]]
-            import pprint
-            pprint.pprint(self.first_guess)
             return self.first_guess
         else:
             return raise_connection_error(resp["completion"])
