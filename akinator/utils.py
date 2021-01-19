@@ -24,9 +24,6 @@ SOFTWARE.
 
 from .exceptions import InvalidAnswerError, InvalidLanguageError, AkiConnectionFailure, AkiTimedOut, AkiNoQuestions, AkiServerDown, AkiTechnicalError
 
-import re
-import json
-
 
 def ans_to_id(ans):
     """Convert an input answer string into an Answer ID for Akinator"""
@@ -103,6 +100,8 @@ def get_lang_and_theme(lang=None):
         return {"lang": "ru", "theme": "c"}
     elif lang == "tr" or lang == "turkish":
         return {"lang": "tr", "theme": "c"}
+    elif lang == "id" or lang == "indonesian":
+        return {"lang": "id", "theme": "c"}
     else:
         raise InvalidLanguageError("You put \"{}\", which is an invalid language.".format(lang))
 
