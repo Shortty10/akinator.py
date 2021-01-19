@@ -173,6 +173,7 @@ start_game(*language=None, child_mode=False*)
   - ``pt``: Portuguese
   - ``ru``: Russian
   - ``tr``: Turkish
+  - ``id``: Indonesian
 
   You can also put the name of the language spelled out, like ``spanish``, ``korean``, ``french_animals``, etc. If you put something else entirely, then then the ``InvalidLanguageError`` exception will be raised
 
@@ -209,13 +210,13 @@ win()
     'corrupt': '0',
     'description': 'Entrepreneur',
     'flag_photo': 0,
-    'id': '50021',
+    'id': '49673',
     'id_base': '2367495',
     'name': 'Elon Musk',
     'picture_path': 'partenaire/z/2367495__125764488.jpg',
-    'proba': '0.901528',
+    'proba': '0.922454',
     'pseudo': 'X',
-    'ranking': '457',
+    'ranking': '193',
     'relative': '0',
     'valide_contrainte': '1'}
 
