@@ -29,4 +29,5 @@ from .akinator import Akinator
 from .exceptions import *
 import os
 
-__version__ = open(os.path.join(os.path.dirname(__file__), "VERSION.txt")).read()
+with open(os.path.join(os.path.dirname(__file__), "VERSION.txt")) as f:
+    __version__ = f.read()
