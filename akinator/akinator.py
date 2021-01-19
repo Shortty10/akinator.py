@@ -122,8 +122,6 @@ class Akinator():
 
         The "language" parameter can be left as None for English, the default language, or it can be set to one of the following (case-insensitive):
             - "en": English (default)
-            - "en2": Second English server. Use if the main one is down
-            - "en3": Third English server. Use if the other two are down
             - "en_animals": English server for guessing animals
             - "en_objects": English server for guessing objects
             - "ar": Arabic
@@ -131,10 +129,8 @@ class Akinator():
             - "de": German
             - "de_animals": German server for guessing animals
             - "es": Spanish
-            - "es2": Second Spanish server. Use if the main one is down
             - "es_animals": Spanish server for guessing animals
             - "fr": French
-            - "fr2": Second French server. Use if the main one is down
             - "fr_animals": French server for guessing animals
             - "fr_objects": French server for guessing objects
             - "il": Hebrew
@@ -148,6 +144,7 @@ class Akinator():
             - "pt": Portuguese
             - "ru": Russian
             - "tr": Turkish
+            - "id": Indonesian
         You can also put the name of the language spelled out, like "spanish", "korean", "french_animals", etc.
 
         The "child_mode" parameter is False by default. If it's set to True, then Akinator won't ask questions about things that are NSFW
@@ -174,7 +171,7 @@ class Akinator():
     def answer(self, ans):
         """Answer the current question, which you can find with "Akinator.question". Returns a string containing the next question
 
-        The "ans" parameter must be one of these:
+        The "ans" parameter must be one of these (case-insensitive):
             - "yes" OR "y" OR "0" for YES
             - "no" OR "n" OR "1" for NO
             - "i" OR "idk" OR "i dont know" OR "i don't know" OR "2" for I DON'T KNOW
