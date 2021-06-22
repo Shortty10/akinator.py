@@ -102,20 +102,25 @@ class Akinator():
     def _auto_get_region(self, lang, theme):
         """Automatically get the uri and server from akinator.com for the specified language and theme"""
 
-        server_regex = re.compile(
-            "[{\"translated_theme_name\":\"[\s\S]*\",\"urlWs\":\"https:\\\/\\\/srv[0-9]+\.akinator\.com:[0-9]+\\\/ws\",\"subject_id\":\"[0-9]+\"}]")
+        server_regex = re.compile("[{\"translated_theme_name\":\"[\s\S]*\",\"urlWs\":\"https:\\\/\\\/srv[0-9]+\.akinator\.com:[0-9]+\\\/ws\",\"subject_id\":\"[0-9]+\"}]")
         uri = lang + ".akinator.com"
-        r = requests.get("https://" + uri)
 
-        match = server_regex.search(r.text)
-        parsed = json.loads(match.group().split("'arrUrlThemesToPlay', ")[-1])
+        bad_list = ["https://srv12.akinator.com:9398/ws"]
+        while True:
+            r = requests.get("https://" + uri)
 
-        if theme == "c":
-            return {"uri": uri, "server": next((i for i in parsed if i["subject_id"] == "1"), None)["urlWs"]}
-        elif theme == "a":
-            return {"uri": uri, "server": next((i for i in parsed if i["subject_id"] == "14"), None)["urlWs"]}
-        elif theme == "o":
-            return {"uri": uri, "server": next((i for i in parsed if i["subject_id"] == "2"), None)["urlWs"]}
+            match = server_regex.search(r.text)
+            parsed = json.loads(match.group().split("'arrUrlThemesToPlay', ")[-1])
+
+            if theme == "c":
+                server = next((i for i in parsed if i["subject_id"] == "1"), None)["urlWs"]
+            elif theme == "a":
+                server = next((i for i in parsed if i["subject_id"] == "14"), None)["urlWs"]
+            elif theme == "o":
+                server = next((i for i in parsed if i["subject_id"] == "2"), None)["urlWs"]
+
+            if server not in bad_list:
+                return {"uri": uri, "server": server}
 
     def start_game(self, language=None, child_mode=False):
         """Start an Akinator game. Run this function first before the others. Returns a string containing the first question
