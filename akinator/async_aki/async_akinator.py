@@ -230,3 +230,10 @@ class Akinator():
             return self.first_guess
         else:
             return raise_connection_error(resp["completion"])
+
+    async def close(self):
+        if self.client_session is not None and self.client_session.closed is False:
+            await self.client_session.close()
+        
+        self.client_session = None # setting it to None either way, so if our client session is closed but our session still exists, we set this to None
+        
