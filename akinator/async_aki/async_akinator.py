@@ -54,6 +54,7 @@ class Akinator():
         self.uri = None
         self.server = None
         self.session = None
+        self.client_session = None # filled in start_game
         self.signature = None
         self.uid = None
         self.frontaddr = None
@@ -158,12 +159,11 @@ class Akinator():
         self.child_mode = child_mode
         soft_constraint = "ETAT%3D%27EN%27" if self.child_mode else ""
         self.question_filter = "cat%3D1" if self.child_mode else ""
-
+        self.client_session = aiohttp.ClientSession()
         await self._get_session_info()
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(NEW_SESSION_URL.format(self.uri, self.timestamp, self.server, str(self.child_mode).lower(), self.uid, self.frontaddr, soft_constraint, self.question_filter), headers=HEADERS) as w:
-                resp = self._parse_response(await w.text())
+        async with self.client_session.get(NEW_SESSION_URL.format(self.uri, self.timestamp, self.server, str(self.child_mode).lower(), self.uid, self.frontaddr, soft_constraint, self.question_filter), headers=HEADERS) as w:
+            resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
             self._update(resp, True)
@@ -184,9 +184,8 @@ class Akinator():
         """
         ans = ans_to_id(ans)
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(ANSWER_URL.format(self.uri, self.timestamp, self.server, str(self.child_mode).lower(), self.session, self.signature, self.step, ans, self.frontaddr, self.question_filter), headers=HEADERS) as w:
-                resp = self._parse_response(await w.text())
+        async with self.client_session.get(ANSWER_URL.format(self.uri, self.timestamp, self.server, str(self.child_mode).lower(), self.session, self.signature, self.step, ans, self.frontaddr, self.question_filter), headers=HEADERS) as w:
+            resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
             self._update(resp)
@@ -203,9 +202,8 @@ class Akinator():
         if self.step == 0:
             raise CantGoBackAnyFurther("You were on the first question and couldn't go back any further")
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(BACK_URL.format(self.server, self.timestamp, str(self.child_mode).lower(), self.session, self.signature, self.step, self.question_filter), headers=HEADERS) as w:
-                resp = self._parse_response(await w.text())
+        async with self.client_session.get(BACK_URL.format(self.server, self.timestamp, str(self.child_mode).lower(), self.session, self.signature, self.step, self.question_filter), headers=HEADERS) as w:
+            resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
             self._update(resp)
@@ -223,9 +221,8 @@ class Akinator():
 
         It's recommended that you call this function when Aki's progression is above 85%, which is when he will have most likely narrowed it down to just one choice. You can get his current progression via "Akinator.progression"
         """
-        async with aiohttp.ClientSession() as session:
-            async with session.get(WIN_URL.format(self.server, self.timestamp, str(self.child_mode).lower(), self.session, self.signature, self.step), headers=HEADERS) as w:
-                resp = self._parse_response(await w.text())
+        async with self.client_session.get(WIN_URL.format(self.server, self.timestamp, str(self.child_mode).lower(), self.session, self.signature, self.step), headers=HEADERS) as w:
+            resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
             self.first_guess = resp["parameters"]["elements"][0]["element"]
