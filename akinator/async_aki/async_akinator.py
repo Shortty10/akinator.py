@@ -54,7 +54,6 @@ class Akinator():
         self.uri = None
         self.server = None
         self.session = None
-        self.client_session = None # filled in start_game
         self.signature = None
         self.uid = None
         self.frontaddr = None
@@ -68,6 +67,8 @@ class Akinator():
 
         self.first_guess = None
         self.guesses = None
+
+        self.client_session = None
 
     def _update(self, resp, start=False):
         """Update class variables"""
@@ -93,9 +94,8 @@ class Akinator():
 
         info_regex = re.compile("var uid_ext_session = '(.*)'\\;\\n.*var frontaddr = '(.*)'\\;")
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get("https://en.akinator.com/game") as w:
-                match = info_regex.search(await w.text())
+        async with self.client_session.get("https://en.akinator.com/game") as w:
+            match = info_regex.search(await w.text())
 
         self.uid, self.frontaddr = match.groups()[0], match.groups()[1]
 
@@ -108,9 +108,8 @@ class Akinator():
 
         bad_list = ["https://srv12.akinator.com:9398/ws"]
         while True:
-            async with aiohttp.ClientSession() as session:
-                async with session.get("https://" + uri) as w:
-                    match = server_regex.search(await w.text())
+            async with self.client_session.get("https://" + uri) as w:
+                match = server_regex.search(await w.text())
 
             parsed = json.loads(match.group().split("'arrUrlThemesToPlay', ")[-1])
 
@@ -124,7 +123,7 @@ class Akinator():
             if server not in bad_list:
                 return {"uri": uri, "server": server}
 
-    async def start_game(self, language=None, child_mode=False):
+    async def start_game(self, language=None, child_mode=False, client_session=None):
         """(coroutine)
         Start an Akinator game. Run this function first before the others. Returns a string containing the first question
 
@@ -156,15 +155,22 @@ class Akinator():
         You can also put the name of the language spelled out, like "spanish", "korean", "french_animals", etc.
 
         The "child_mode" parameter is False by default. If it's set to True, then Akinator won't ask questions about things that are NSFW
+
+        The "client_session" parameter is where you can optionally specify an aiohttp ClientSession for the class functions to use when making API requests. If unspecified, a new ClientSession will be created
         """
         self.timestamp = time.time()
+
+        if client_session:
+            self.client_session = client_session
+        else:
+            self.client_session = aiohttp.ClientSession()
+
         region_info = await self._auto_get_region(get_lang_and_theme(language)["lang"], get_lang_and_theme(language)["theme"])
         self.uri, self.server = region_info["uri"], region_info["server"]
 
         self.child_mode = child_mode
         soft_constraint = "ETAT%3D%27EN%27" if self.child_mode else ""
         self.question_filter = "cat%3D1" if self.child_mode else ""
-        self.client_session = aiohttp.ClientSession()
         await self._get_session_info()
 
         async with self.client_session.get(NEW_SESSION_URL.format(self.uri, self.timestamp, self.server, str(self.child_mode).lower(), self.uid, self.frontaddr, soft_constraint, self.question_filter), headers=HEADERS) as w:
@@ -237,8 +243,13 @@ class Akinator():
             return raise_connection_error(resp["completion"])
 
     async def close(self):
+        """(coroutine)
+        Close the aiohttp ClientSession. Call this function after the Akinator game is finished
+
+        Note: If you specified your own ClientSession in "Akinator.start_game()", you might actually not want to call this function
+        """
         if self.client_session is not None and self.client_session.closed is False:
             await self.client_session.close()
-        
-        self.client_session = None # setting it to None either way, so if our client session is closed but our session still exists, we set this to None
-        
+
+        self.client_session = None
+
