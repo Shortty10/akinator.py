@@ -54,7 +54,11 @@ def ans_to_id(ans):
 def get_lang_and_theme(lang=None):
     """Returns the language code and theme based on what is input"""
 
-    if lang is None or lang == "en" or lang == "english":
+    if lang is None:
+        return {"lang": "en", "theme": "c"}
+
+    lang = str(lang).lower()
+    if lang == "en" or lang == "english":
         return {"lang": "en", "theme": "c"}
     elif lang == "en_animals" or lang == "english_animals":
         return {"lang": "en", "theme": "a"}
@@ -116,6 +120,6 @@ def raise_connection_error(response):
     elif response == "KO - TIMEOUT":
         raise AkiTimedOut("Your Akinator session has timed out")
     elif response == "KO - ELEM LIST IS EMPTY" or response == "WARN - NO QUESTION":
-        raise AkiNoQuestions("\"Akinator.step\" reached 80. No more questions")
+        raise AkiNoQuestions("\"Akinator.step\" reached 79. No more questions")
     else:
         raise AkiConnectionFailure("An unknown error has occured. Server response: {}".format(response))
