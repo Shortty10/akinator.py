@@ -25,6 +25,7 @@ async def main():
         print("Yay\n")
     else:
         print("Oof\n")
+    await aki.close()
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
