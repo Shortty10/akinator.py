@@ -25,7 +25,7 @@ setup(
         "Documentation": "https://github.com/NinjaSnail1080/akinator.py/blob/master/README.rst",
         "Source": "https://github.com/NinjaSnail1080/akinator.py",
         "Tracker": "https://github.com/NinjaSnail1080/akinator.py/issues",
-        "Say Thanks!": "https://saythanks.io/to/NinjaSnail1080"
+        "Say Thanks!": "https://saythanks.io/to/innuganti.ashwin%40gmail.com"
     },
     license="MIT License",
     description="An API wrapper for the online game, Akinator, written in Python",
@@ -41,6 +41,7 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "Natural Language :: English",

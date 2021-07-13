@@ -69,6 +69,8 @@ class Akinator():
         self.first_guess = None
         self.guesses = None
 
+        self.client_session = None
+
     def _update(self, resp, start=False):
         """Update class variables"""
 
@@ -97,9 +99,8 @@ class Akinator():
         info_regex = re.compile(
             "var uid_ext_session = '(.*)'\\;\\n.*var frontaddr = '(.*)'\\;")
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get("https://en.akinator.com/game") as w:
-                match = info_regex.search(await w.text())
+        async with self.client_session.get("https://en.akinator.com/game") as w:
+            match = info_regex.search(await w.text())
 
         self.uid, self.frontaddr = match.groups()[0], match.groups()[1]
 
@@ -110,27 +111,33 @@ class Akinator():
             "[{\"translated_theme_name\":\"[\s\S]*\",\"urlWs\":\"https:\\\/\\\/srv[0-9]+\.akinator\.com:[0-9]+\\\/ws\",\"subject_id\":\"[0-9]+\"}]")
         uri = lang + ".akinator.com"
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get("https://" + uri) as w:
+        bad_list = ["https://srv12.akinator.com:9398/ws"]
+        while True:
+            async with self.client_session.get("https://" + uri) as w:
                 match = server_regex.search(await w.text())
 
-        parsed = json.loads(match.group().split("'arrUrlThemesToPlay', ")[-1])
+            parsed = json.loads(match.group().split(
+                "'arrUrlThemesToPlay', ")[-1])
 
-        if theme == "c":
-            return {"uri": uri, "server": next((i for i in parsed if i["subject_id"] == "1"), None)["urlWs"]}
-        elif theme == "a":
-            return {"uri": uri, "server": next((i for i in parsed if i["subject_id"] == "14"), None)["urlWs"]}
-        elif theme == "o":
-            return {"uri": uri, "server": next((i for i in parsed if i["subject_id"] == "2"), None)["urlWs"]}
+            if theme == "c":
+                server = next((i for i in parsed if i["subject_id"] == "1"), None)[
+                    "urlWs"]
+            elif theme == "a":
+                server = next((i for i in parsed if i["subject_id"] == "14"), None)[
+                    "urlWs"]
+            elif theme == "o":
+                server = next((i for i in parsed if i["subject_id"] == "2"), None)[
+                    "urlWs"]
 
-    async def start_game(self, language=None, child_mode=False):
+            if server not in bad_list:
+                return {"uri": uri, "server": server}
+
+    async def start_game(self, language=None, child_mode=False, client_session=None):
         """(coroutine)
         Start an Akinator game. Run this function first before the others. Returns a string containing the first question
 
         The "language" parameter can be left as None for English, the default language, or it can be set to one of the following (case-insensitive):
             - "en": English (default)
-            - "en2": Second English server. Use if the main one is down
-            - "en3": Third English server. Use if the other two are down
             - "en_animals": English server for guessing animals
             - "en_objects": English server for guessing objects
             - "ar": Arabic
@@ -138,10 +145,8 @@ class Akinator():
             - "de": German
             - "de_animals": German server for guessing animals
             - "es": Spanish
-            - "es2": Second Spanish server. Use if the main one is down
             - "es_animals": Spanish server for guessing animals
             - "fr": French
-            - "fr2": Second French server. Use if the main one is down
             - "fr_animals": French server for guessing animals
             - "fr_objects": French server for guessing objects
             - "il": Hebrew
@@ -155,21 +160,30 @@ class Akinator():
             - "pt": Portuguese
             - "ru": Russian
             - "tr": Turkish
+            - "id": Indonesian
         You can also put the name of the language spelled out, like "spanish", "korean", "french_animals", etc.
+
+        The "child_mode" parameter is False by default. If it's set to True, then Akinator won't ask questions about things that are NSFW
+
+        The "client_session" parameter is where you can optionally specify an aiohttp ClientSession for the class functions to use when making API requests. If unspecified, a new ClientSession will be created
         """
         self.timestamp = time.time()
+
+        if client_session:
+            self.client_session = client_session
+        else:
+            self.client_session = aiohttp.ClientSession()
+
         region_info = await self._auto_get_region(get_lang_and_theme(language)["lang"], get_lang_and_theme(language)["theme"])
         self.uri, self.server = region_info["uri"], region_info["server"]
 
         self.child_mode = child_mode
         soft_constraint = "ETAT%3D%27EN%27" if self.child_mode else ""
         self.question_filter = "cat%3D1" if self.child_mode else ""
-
         await self._get_session_info()
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(NEW_SESSION_URL.format(self.uri, self.timestamp, self.server, str(self.child_mode).lower(), self.uid, self.frontaddr, soft_constraint, self.question_filter), headers=HEADERS) as w:
-                resp = self._parse_response(await w.text())
+        async with self.client_session.get(NEW_SESSION_URL.format(self.uri, self.timestamp, self.server, str(self.child_mode).lower(), self.uid, self.frontaddr, soft_constraint, self.question_filter), headers=HEADERS) as w:
+            resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
             self._update(resp, True)
@@ -181,7 +195,7 @@ class Akinator():
         """(coroutine)
         Answer the current question, which you can find with "Akinator.question". Returns a string containing the next question
 
-        The "ans" parameter must be one of these:
+        The "ans" parameter must be one of these (case-insensitive):
             - "yes" OR "y" OR "0" for YES
             - "no" OR "n" OR "1" for NO
             - "i" OR "idk" OR "i dont know" OR "i don't know" OR "2" for I DON'T KNOW
@@ -190,9 +204,8 @@ class Akinator():
         """
         ans = ans_to_id(ans)
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(ANSWER_URL.format(self.uri, self.timestamp, self.server, str(self.child_mode).lower(), self.session, self.signature, self.step, ans, self.frontaddr, self.question_filter), headers=HEADERS) as w:
-                resp = self._parse_response(await w.text())
+        async with self.client_session.get(ANSWER_URL.format(self.uri, self.timestamp, self.server, str(self.child_mode).lower(), self.session, self.signature, self.step, ans, self.frontaddr, self.question_filter), headers=HEADERS) as w:
+            resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
             self._update(resp)
@@ -210,9 +223,8 @@ class Akinator():
             raise CantGoBackAnyFurther(
                 "You were on the first question and couldn't go back any further")
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(BACK_URL.format(self.server, self.timestamp, str(self.child_mode).lower(), self.session, self.signature, self.step, self.question_filter), headers=HEADERS) as w:
-                resp = self._parse_response(await w.text())
+        async with self.client_session.get(BACK_URL.format(self.server, self.timestamp, str(self.child_mode).lower(), self.session, self.signature, self.step, self.question_filter), headers=HEADERS) as w:
+            resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
             self._update(resp)
@@ -224,17 +236,16 @@ class Akinator():
         """(coroutine)
         Get Aki's guesses for who the person you're thinking of is based on your answers to the questions.
 
-        This function returns a list of dictionaries containing 4 variables:
-            - name: The name of the person Aki guessed
-            - description: A short description of that person
-            - picture: A direct link to an image of the person
-            - progression: The probability that this is the correct person
+        This function returns a list of dictionaries containing 4 keys:
+            - name (str): The name of the person Aki guessed
+            - description (str): A short description of that person
+            - picture (str): A direct link to an image of the person
+            - probability (float): The percent chance that this is the correct person
 
         It's recommended that you call this function when Aki's progression is above 80%. You can get his current progression via "Akinator.progression"
         """
-        async with aiohttp.ClientSession() as session:
-            async with session.get(WIN_URL.format(self.server, self.timestamp, str(self.child_mode).lower(), self.session, self.signature, self.step), headers=HEADERS) as w:
-                resp = self._parse_response(await w.text())
+        async with self.client_session.get(WIN_URL.format(self.server, self.timestamp, str(self.child_mode).lower(), self.session, self.signature, self.step), headers=HEADERS) as w:
+            resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
             guesses = []
@@ -251,3 +262,14 @@ class Akinator():
             return guesses
         else:
             return raise_connection_error(resp["completion"])
+
+    async def close(self):
+        """(coroutine)
+        Close the aiohttp ClientSession. Call this function after the Akinator game is finished
+
+        Note: If you specified your own ClientSession in "Akinator.start_game()", you might actually not want to call this function
+        """
+        if self.client_session is not None and self.client_session.closed is False:
+            await self.client_session.close()
+
+        self.client_session = None

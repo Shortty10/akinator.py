@@ -4,7 +4,7 @@ akinator.py
 
 **An API wrapper for the online game, Akinator, written in Python**
 
-.. image:: https://img.shields.io/badge/pypi-v4.0.0-blue.svg
+.. image:: https://img.shields.io/badge/pypi-v5.0.0-blue.svg
     :target: https://pypi.python.org/pypi/akinator.py/
 
 .. image:: https://img.shields.io/badge/python-%E2%89%A53.5.3-yellow.svg
@@ -109,6 +109,7 @@ Here's the same game as above, but using the async version of the library instea
           print("Yay\n")
       else:
           print("Oof\n")
+      await aki.close()
 
   loop = asyncio.get_event_loop()
   loop.run_until_complete(main())
@@ -120,7 +121,7 @@ Documentation
 
 Because this library is relatively simple and only has a few functions to keep track of, all the documentation is going to go here in the README, instead of on a separate site like `readthedocs.io <https://readthedocs.org/>`_ or something.
 
-The async version of this library works almost exactly the same as the regular, non-async one. Both have the same classes, names of functions, etc. Any differences will be noted.
+The async version of this library works almost exactly the same as the regular, non-async one. For the most part, both have the same classes, names of functions, etc. Any differences will be noted.
 
 **Version Information**::
 
@@ -173,10 +174,13 @@ start_game(*language=None, child_mode=False*)
   - ``pt``: Portuguese
   - ``ru``: Russian
   - ``tr``: Turkish
+  - ``id``: Indonesian
 
   You can also put the name of the language spelled out, like ``spanish``, ``korean``, ``french_animals``, etc. If you put something else entirely, then then the ``InvalidLanguageError`` exception will be raised
 
   The ``child_mode`` parameter is False by default. If it's set to True, then Akinator won't ask questions about things that are NSFW
+
+  **Important Note**: In the async version of the class, there's a third parameter: ``client_session`` (None by default). Here you can optionally specify an aiohttp ClientSession for the class functions to use when making API requests. If unspecified, a new ClientSession will be created
 
 answer(*ans*)
   Answer the current question, which you can find with ``Akinator.question``. Returns a string containing the next question
@@ -204,24 +208,31 @@ win()
 
   .. code-block:: javascript
 
-    {'absolute_picture_path': 'https://photos.clarinea.fr/BL_25_en/600/partenaire/z/2367495__125764488.jpg',
-    'award_id': '-1',
-    'corrupt': '0',
-    'description': 'Entrepreneur',
-    'flag_photo': 0,
-    'id': '50021',
-    'id_base': '2367495',
-    'name': 'Elon Musk',
-    'picture_path': 'partenaire/z/2367495__125764488.jpg',
-    'proba': '0.901528',
-    'pseudo': 'X',
-    'ranking': '457',
-    'relative': '0',
-    'valide_contrainte': '1'}
+    {'absolute_picture_path': 'https://photos.clarinea.fr/BL_25_en/600/partenaire/c/2367495__1106501382.png',
+     'award_id': '-1',
+     'corrupt': '0',
+     'description': 'Entrepreneur',
+     'flag_photo': 0,
+     'id': '49291',
+     'id_base': '2367495',
+     'name': 'Elon Musk',
+     'picture_path': 'partenaire/c/2367495__1106501382.png',
+     'proba': '0.925177',
+     'pseudo': 'Elon Musk',
+     'ranking': '229',
+     'relative': '0',
+     'valide_contrainte': '1'}
 
   This function also defines ``Akinator.guesses``, which is a list of dictionaries containing his choices in order from most likely to least likely
 
   It's recommended that you call this function when Aki's progression is above 80%. You can get his current progression via ``Akinator.progression``
+
+close()
+  **This function is only in the async version of the class**
+
+  Close the aiohttp ClientSession. Call this function after the Akinator game is finished
+
+  However, if you specified your own ClientSession in "Akinator.start_game()", you might actually not want to call this function
 
 Variables
 =========
@@ -267,7 +278,12 @@ first_guess
 guesses
   A list of dicts containing his choices in order from most likely to least likely. Each dict will look the same as ``first_guess``. This list will also contain ``first_guess`` as the first entry. This variable will only be defined once ``Akinator.win()`` is called
 
+client_session
+  An aiohttp ClientSession object that is used when making API requests. This variable is only present in the async version of the class
+
 The first 8 variables—``uri``, ``server``, ``session``, ``signature``, ``uid``, ``frontaddr``, ``child_mode``, and ``timestamp``—will remain unchanged, but the next 3—``question``, ``progression``, and ``step``—will change as you go on. The final two—``first_guess`` and ``guesses``— will only be defined when ``Akinator.win()`` is called.
+
+``client_session``, which is only in the async version of the class, will not change once it's been set, but calling ``Akinator.close()`` will reset it to None.
 
 Exceptions
 ==========
@@ -275,10 +291,10 @@ Exceptions
 Exceptions that are thrown by the library
 
 InvalidAnswerError
-  Raised when the user inputs an invalid answer into ``Akinator.answer(ans)``. Subclassed from ``ValueError``
+  Raised when the user inputs an invalid answer into ``Akinator.answer()``. Subclassed from ``ValueError``
 
 InvalidLanguageError
-  Raised when the user inputs an invalid language into ``Akinator.start_game(language=None)``. Subclassed from ``ValueError``
+  Raised when the user inputs an invalid language into ``Akinator.start_game()``. Subclassed from ``ValueError``
 
 AkiConnectionFailure
   Raised if the Akinator API fails to connect for some reason. Base class for ``AkiTimedOut``, ``AkiNoQuestions``, ``AkiServerDown``, and ``AkiTechnicalError``
