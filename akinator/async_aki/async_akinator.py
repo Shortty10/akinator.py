@@ -182,7 +182,7 @@ class Akinator():
         self.question_filter = "cat%3D1" if self.child_mode else ""
         await self._get_session_info()
 
-        async with self.client_session.get(NEW_SESSION_URL.format(self.uri, self.timestamp, self.server, str(self.child_mode).lower(), self.uid, self.frontaddr, soft_constraint, self.question_filter), headers=HEADERS) as w:
+        async with self.client_session.get(NEW_SESSION_URL.format(self.uri, self.timestamp, self.server, str(self.child_mode).lower(), self.uid, self.frontaddr, soft_constraint, self.question_filter), headers=HEADERS, verify=False) as w:
             resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
