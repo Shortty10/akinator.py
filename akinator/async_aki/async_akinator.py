@@ -99,7 +99,7 @@ class Akinator():
         info_regex = re.compile(
             "var uid_ext_session = '(.*)'\\;\\n.*var frontaddr = '(.*)'\\;")
 
-        async with self.client_session.get("https://en.akinator.com/game") as w:
+        async with self.client_session.get("https://en.akinator.com/game", verify=False) as w:
             match = info_regex.search(await w.text())
 
         self.uid, self.frontaddr = match.groups()[0], match.groups()[1]
@@ -113,7 +113,7 @@ class Akinator():
 
         bad_list = ["https://srv12.akinator.com:9398/ws"]
         while True:
-            async with self.client_session.get("https://" + uri) as w:
+            async with self.client_session.get("https://" + uri, verify=False) as w:
                 match = server_regex.search(await w.text())
 
             parsed = json.loads(match.group().split(
@@ -204,7 +204,7 @@ class Akinator():
         """
         ans = ans_to_id(ans)
 
-        async with self.client_session.get(ANSWER_URL.format(self.uri, self.timestamp, self.server, str(self.child_mode).lower(), self.session, self.signature, self.step, ans, self.frontaddr, self.question_filter), headers=HEADERS) as w:
+        async with self.client_session.get(ANSWER_URL.format(self.uri, self.timestamp, self.server, str(self.child_mode).lower(), self.session, self.signature, self.step, ans, self.frontaddr, self.question_filter), headers=HEADERS, verify=False) as w:
             resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
@@ -223,7 +223,7 @@ class Akinator():
             raise CantGoBackAnyFurther(
                 "You were on the first question and couldn't go back any further")
 
-        async with self.client_session.get(BACK_URL.format(self.server, self.timestamp, str(self.child_mode).lower(), self.session, self.signature, self.step, self.question_filter), headers=HEADERS) as w:
+        async with self.client_session.get(BACK_URL.format(self.server, self.timestamp, str(self.child_mode).lower(), self.session, self.signature, self.step, self.question_filter), headers=HEADERS, verify=False) as w:
             resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
@@ -244,7 +244,7 @@ class Akinator():
 
         It's recommended that you call this function when Aki's progression is above 80%. You can get his current progression via "Akinator.progression"
         """
-        async with self.client_session.get(WIN_URL.format(self.server, self.timestamp, str(self.child_mode).lower(), self.session, self.signature, self.step), headers=HEADERS) as w:
+        async with self.client_session.get(WIN_URL.format(self.server, self.timestamp, str(self.child_mode).lower(), self.session, self.signature, self.step), headers=HEADERS, verify=False) as w:
             resp = self._parse_response(await w.text())
 
         if resp["completion"] == "OK":
